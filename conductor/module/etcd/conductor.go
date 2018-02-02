@@ -1,4 +1,4 @@
-package conductor
+package etcd
 
 import (
 	"context"
@@ -7,9 +7,9 @@ import (
 	"log"
 	"sync"
 	"time"
+	"github.com/concertos/config"
+	"github.com/concertos/player/module/etcd"
 )
-
-const ETCDENDPOINT = "http://127.0.0.1:2379"
 
 var conductor *Conductor
 var once sync.Once
@@ -21,20 +21,12 @@ type Conductor struct {
 
 type Player struct {
 	Online bool
-	Info   PlayerInfo
+	Info   etcd.ClientInfo
 }
 
-type PlayerInfo struct {
-	Id       string
-	Ips      []string
-	Hostname string
-	Memory   uint64
-	Cpu      int
-}
-
-func NodeToPlayerInfo(node *client.Node) *PlayerInfo {
+func NodeToPlayerInfo(node *client.Node) *etcd.ClientInfo {
 	log.Println(node.Value)
-	info := &PlayerInfo{}
+	info := &etcd.ClientInfo{}
 	err := json.Unmarshal([]byte(node.Value), info)
 	if err != nil {
 		log.Print(err)
@@ -42,14 +34,14 @@ func NodeToPlayerInfo(node *client.Node) *PlayerInfo {
 	return info
 }
 
-func (c *Conductor) UpdatePlayer(info *PlayerInfo, online bool) {
+func (c *Conductor) UpdatePlayer(info *etcd.ClientInfo, online bool) {
 	player, ok := c.Players[info.Id]
 	if ok {
 		player.Online = online
 	}
 }
 
-func (c *Conductor) AddPlayer(info PlayerInfo) {
+func (c *Conductor) AddPlayer(info etcd.ClientInfo) {
 	player := &Player{
 		Online: true,
 		Info:   info,
@@ -57,7 +49,7 @@ func (c *Conductor) AddPlayer(info PlayerInfo) {
 	c.Players[player.Info.Id] = player
 }
 
-func (c *Conductor) DeletePlayer(info *PlayerInfo) {
+func (c *Conductor) DeletePlayer(info *etcd.ClientInfo) {
 	delete(c.Players, info.Id)
 }
 
@@ -105,7 +97,7 @@ func (c *Conductor) Watch() {
 
 func NewConductor() *Conductor {
 	cfg := client.Config{
-		Endpoints:               []string{ETCDENDPOINT},
+		Endpoints:               config.GetEtcdPoints(),
 		Transport:               client.DefaultTransport,
 		HeaderTimeoutPerRequest: time.Second,
 	}

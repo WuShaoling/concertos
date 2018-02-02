@@ -4,7 +4,7 @@ import (
 	"github.com/emicklei/go-restful"
 	"net/http"
 	"github.com/emicklei/go-restful-openapi"
-	"github.com/concertos/conductor/module/conductor"
+	"github.com/concertos/conductor/module/etcd"
 	"context"
 	"log"
 	"encoding/json"
@@ -73,7 +73,7 @@ func (u UserResource) WebService() *restful.WebService {
 }
 
 func (u UserResource) findAllUsers(request *restful.Request, response *restful.Response) {
-	c := conductor.GetConductor()
+	c := etcd.GetConductor()
 	resp, err := c.KeysAPI.Get(context.Background(), "/users", nil)
 	if err != nil {
 		log.Println("err read users")
@@ -94,7 +94,7 @@ func (u UserResource) findAllUsers(request *restful.Request, response *restful.R
 }
 
 func (u UserResource) findUser(request *restful.Request, response *restful.Response) {
-	c := conductor.GetConductor()
+	c := etcd.GetConductor()
 	id := request.PathParameter("user-id")
 	resp, err := c.KeysAPI.Get(context.Background(), "/users/"+id, nil)
 	if err != nil {
@@ -109,7 +109,7 @@ func (u UserResource) findUser(request *restful.Request, response *restful.Respo
 }
 
 func (u *UserResource) updateUser(request *restful.Request, response *restful.Response) {
-	c := conductor.GetConductor()
+	c := etcd.GetConductor()
 	usr := new(User)
 	err := request.ReadEntity(&usr)
 	if err == nil {
@@ -123,7 +123,7 @@ func (u *UserResource) updateUser(request *restful.Request, response *restful.Re
 }
 
 func (u *UserResource) createUser(request *restful.Request, response *restful.Response) {
-	c := conductor.GetConductor()
+	c := etcd.GetConductor()
 	sid, _ := shortid.New(1, shortid.DefaultABC, 2342)
 	uid, _ := sid.Generate()
 	usr := User{Id: uid}
@@ -138,7 +138,7 @@ func (u *UserResource) createUser(request *restful.Request, response *restful.Re
 }
 
 func (u *UserResource) removeUser(request *restful.Request, response *restful.Response) {
-	c := conductor.GetConductor()
+	c := etcd.GetConductor()
 	id := request.PathParameter("user-id")
 
 	c.KeysAPI.Delete(context.Background(), "/users/"+id, nil)

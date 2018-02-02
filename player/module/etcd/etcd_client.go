@@ -15,8 +15,6 @@ import (
 	"github.com/concertos/config"
 )
 
-const ETCDENDPOINT = "http://127.0.0.1:2379"
-
 var etcdClient *Client
 var once sync.Once
 
@@ -35,7 +33,7 @@ type ClientInfo struct {
 
 func (c *Client) HeartBeat() {
 	for {
-		key := "/players/" + c.Info.Hostname
+		key := "/players/" + c.Info.Id
 		value, _ := json.Marshal(&c.Info)
 
 		_, err := c.KeysAPI.Set(context.Background(), key, string(value), &client.SetOptions{
@@ -44,14 +42,13 @@ func (c *Client) HeartBeat() {
 		if err != nil {
 			log.Println("Error update EtcdClientInfo:", err)
 		}
-		//log.Fatal(key)
 		time.Sleep(time.Second * config.HEARTBEAT)
 	}
 }
 
 func NewEtcdClient() *Client {
 	cfg := client.Config{
-		Endpoints:               []string{ETCDENDPOINT},
+		Endpoints:               config.GetEtcdPoints(),
 		Transport:               client.DefaultTransport,
 		HeaderTimeoutPerRequest: time.Second,
 	}

@@ -1,4 +1,4 @@
-package osnetwork
+package network
 
 import (
 	"fmt"

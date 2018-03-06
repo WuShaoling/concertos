@@ -8,9 +8,9 @@ import (
 )
 
 func main() {
-	var role = flag.String("role", "", "master | worker")
+	var role = flag.String("role", "", "conductor | player")
 	flag.Parse()
-	if *role == "etcd" {
+	if *role == "conductor" {
 		conductor.StartConductor()
 	} else if *role == "player" {
 		player.StartPlayer()

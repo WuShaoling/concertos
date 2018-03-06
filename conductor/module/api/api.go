@@ -1,7 +1,6 @@
 package api
 
 import (
-	"github.com/concertos/conductor/module/resources"
 	"log"
 	"net/http"
 	"github.com/emicklei/go-restful-openapi"

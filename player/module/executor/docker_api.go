@@ -1,21 +1,26 @@
 package executor
 
-func Install() bool {
+type Docker struct {
+	Base Container
+	Type int
+}
+
+func (d Docker) Install() bool {
 	return false;
 }
 
-func Start() bool {
+func (d Docker) Start() bool {
 	return false;
 }
 
-func Stop() bool {
+func (d Docker) Stop() bool {
 	return false;
 }
 
-func Pause() bool {
+func (d Docker) Pause() bool {
 	return false;
 }
 
-func Restart() bool {
+func (d Docker) Restart() bool {
 	return false;
 }

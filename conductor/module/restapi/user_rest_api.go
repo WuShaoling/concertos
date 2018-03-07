@@ -7,7 +7,6 @@ import (
 	"github.com/concertos/common"
 	"github.com/concertos/conductor/module/etcd"
 	"log"
-	"github.com/concertos/util"
 )
 
 type UserResource struct {
@@ -75,7 +74,7 @@ func (u *UserResource) createUser(request *restful.Request, response *restful.Re
 	u1, err1 := c.GetUser(user.Id)
 
 	if err1 != nil { // InternalServerError
-		if util.GetEtcdErrorType(err1.Error())[0] != "100" {
+		if c.GetErrorType(err) != 100 {
 			log.Println("Error StatusInternalServerError : ", err1)
 			response.WriteError(http.StatusInternalServerError, err1)
 			return

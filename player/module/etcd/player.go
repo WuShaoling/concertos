@@ -16,32 +16,38 @@ import (
 )
 
 type Player struct {
-	client *clientv3.Client
-	Info   *common.PlayerInfo
+	ClientV3     *clientv3.Client
+	MyEtcdClient *common.MyEtcdClient
+	Info         *common.PlayerInfo
 }
 
 func GetSysInfo(info *common.PlayerInfo) {
 	memory, _ := mem.VirtualMemory()
 	info.Memory = memory.Total
+
 	hostname, _ := os.Hostname()
 	info.Hostname = hostname
+
 	info.Ips = util.GetIps()
 	info.Cpu = runtime.NumCPU()
 }
 
 func (p *Player) HeartBeat() {
+	// set player info
+	key := common.ETCD_PREFIX_USERS_INFO + p.Info.Id
+	value, _ := json.Marshal(p.Info)
+	p.MyEtcdClient.Put(key, string(value), nil)
 
+	// update player is alive
 	for {
-		GetSysInfo(p.Info)
-		log.Println(p.Info)
-		key := common.ETCD_PREFIX_PLAYERS_INFO + p.Info.Id
-		value, _ := json.Marshal(&p.Info)
+		key := common.ETCD_PREFIX_PLAYERS_ALIVE + p.Info.Id
+		value, _ := json.Marshal(p.Info.Id)
 
-		resp, err := p.client.Grant(context.TODO(), common.HEART_BEAT)
+		resp, err := p.ClientV3.Grant(context.TODO(), common.HEART_BEAT)
 		if err != nil {
 			log.Println(err)
 		}
-		_, err = p.client.Put(context.TODO(), key, string(value), clientv3.WithLease(resp.ID))
+		_, err = p.MyEtcdClient.Put(key, string(value), clientv3.WithLease(resp.ID))
 		if err != nil {
 			log.Println(err)
 		}
@@ -50,40 +56,15 @@ func (p *Player) HeartBeat() {
 }
 
 func NewPlayer() *Player {
-
-	etcdClient, err := clientv3.New(clientv3.Config{
-		Endpoints:   common.GetEtcdPoints(),
-		DialTimeout: 2 * time.Second,
-	})
-
-	if err != nil {
-		log.Fatal("Error: new etcd client error:", err)
-		return nil
-	}
-	//
-	//conductor := &Conductor{
-	//	client: *etcdClient,
-	//}
-	//return conductor
-	//
-	//
-	//cfg := client.Config{
-	//	Endpoints:               common.GetEtcdPoints(),
-	//	Transport:               client.DefaultTransport,
-	//	HeaderTimeoutPerRequest: time.Second,
-	//}
-	//
-	//etcdClient, err := client.New(cfg)
-	//if err != nil {
-	//	log.Fatal("Error: cannot connec to etcd:", err)
-	//}
 	var info = new(common.PlayerInfo)
 	info.Id = shortid.MustGenerate()
 	info.State = common.ONLINE
 	GetSysInfo(info)
+
 	player := &Player{
-		Info:   info,
-		client: etcdClient,
+		Info:         info,
+		MyEtcdClient: common.GetMyEtcdClient(),
+		ClientV3:     common.GetClientV3(),
 	}
 	return player
 }

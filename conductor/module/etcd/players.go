@@ -10,7 +10,13 @@ import (
 )
 
 func (c *Conductor) PutPlayer(info *common.PlayerInfo) error {
-	return nil
+	key := common.ETCD_PREFIX_PLAYERS_INFO + info.Id
+	value, _ := json.Marshal(info)
+	_, err := c.client.Put(context.Background(), key, string(value), nil)
+	if err != nil {
+		log.Println("Error PutPlayer() ", info.Id, " : ", err)
+	}
+	return err
 }
 
 func (c *Conductor) DeletePlayer(id string) error {
@@ -57,4 +63,14 @@ func (c *Conductor) Watch() {
 //		log.Println("Error NodeToPlayerInfo : ", err)
 //	}
 //	return info
+//}
+
+//
+//func (c *Conductor) PutPlayerId(id string) error {
+//	_, err := c.client.Put(context.Background(), key, string(value), nil)
+//	c.client.Delete()
+//	if err != nil {
+//		log.Println("Error PutPlayer() ", info.Id, " : ", err)
+//	}
+//	return err
 //}

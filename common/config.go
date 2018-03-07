@@ -1,8 +1,8 @@
 package common
 
 const NAMESPACE = "cos"
-const TTL = 60
-const HEART_BEAT = 20
+const TTL = 30
+const HEART_BEAT = 10
 
 const (
 	PLAYER_STATE = iota //0

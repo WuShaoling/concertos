@@ -8,7 +8,6 @@ import (
 	"github.com/concertos/conductor/module/etcd"
 	"log"
 	"github.com/concertos/util"
-	"context"
 )
 
 type UserResource struct {
@@ -92,10 +91,6 @@ func (u *UserResource) createUser(request *restful.Request, response *restful.Re
 		log.Println("Error set user : ", err2)
 		response.WriteError(http.StatusInternalServerError, err2)
 		return
-	}
-	res, err := c.KeysAPI.Get(context.Background(), "/", nil)
-	for node := range res.Node.Nodes {
-		log.Println(node)
 	}
 
 	response.WriteHeaderAndEntity(http.StatusCreated, user)

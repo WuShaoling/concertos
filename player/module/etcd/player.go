@@ -1,7 +1,7 @@
 package etcd
 
 import (
-	"github.com/coreos/etcd/client"
+	"github.com/coreos/etcd/clientv3"
 	"time"
 	"sync"
 	"log"
@@ -10,63 +10,80 @@ import (
 	"context"
 	"os"
 	"github.com/shirou/gopsutil/mem"
-	"github.com/shortid"
 	"runtime"
 	"github.com/concertos/common"
+	"github.com/shortid"
 )
 
 type Player struct {
-	KeysAPI client.KeysAPI
-	Info    common.PlayerInfo
+	client *clientv3.Client
+	Info   *common.PlayerInfo
 }
 
-func GetSysInfo() common.PlayerInfo {
-	hostname, _ := os.Hostname()
+func GetSysInfo(info *common.PlayerInfo) {
 	memory, _ := mem.VirtualMemory()
-	id := shortid.MustGenerate()
-	ips := util.GetIps()
-	cpu := runtime.NumCPU()
-
-	return common.PlayerInfo{
-		Id:       id,
-		Ips:      ips,
-		Hostname: hostname,
-		Memory:   memory.Total,
-		Cpu:      cpu,
-	}
+	info.Memory = memory.Total
+	hostname, _ := os.Hostname()
+	info.Hostname = hostname
+	info.Ips = util.GetIps()
+	info.Cpu = runtime.NumCPU()
 }
 
 func (p *Player) HeartBeat() {
+
 	for {
-		p.Info = GetSysInfo()
+		GetSysInfo(p.Info)
+		log.Println(p.Info)
 		key := common.ETCD_PREFIX_PLAYERS_INFO + p.Info.Id
 		value, _ := json.Marshal(&p.Info)
 
-		_, err := p.KeysAPI.Set(context.Background(), key, string(value), &client.SetOptions{
-			TTL: time.Second * common.TTL,
-		})
+		resp, err := p.client.Grant(context.TODO(), common.HEART_BEAT)
 		if err != nil {
-			log.Println("Error update EtcdClientInfo:", err)
+			log.Println(err)
+		}
+		_, err = p.client.Put(context.TODO(), key, string(value), clientv3.WithLease(resp.ID))
+		if err != nil {
+			log.Println(err)
 		}
 		time.Sleep(time.Second * common.HEART_BEAT)
 	}
 }
 
 func NewPlayer() *Player {
-	cfg := client.Config{
-		Endpoints:               common.GetEtcdPoints(),
-		Transport:               client.DefaultTransport,
-		HeaderTimeoutPerRequest: time.Second,
-	}
 
-	etcdClient, err := client.New(cfg)
+	etcdClient, err := clientv3.New(clientv3.Config{
+		Endpoints:   common.GetEtcdPoints(),
+		DialTimeout: 2 * time.Second,
+	})
+
 	if err != nil {
-		log.Fatal("Error: cannot connec to etcd:", err)
+		log.Fatal("Error: new etcd client error:", err)
+		return nil
 	}
-
+	//
+	//conductor := &Conductor{
+	//	client: *etcdClient,
+	//}
+	//return conductor
+	//
+	//
+	//cfg := client.Config{
+	//	Endpoints:               common.GetEtcdPoints(),
+	//	Transport:               client.DefaultTransport,
+	//	HeaderTimeoutPerRequest: time.Second,
+	//}
+	//
+	//etcdClient, err := client.New(cfg)
+	//if err != nil {
+	//	log.Fatal("Error: cannot connec to etcd:", err)
+	//}
+	var info = new(common.PlayerInfo)
+	info.Id = shortid.MustGenerate()
+	info.State = common.ONLINE
+	GetSysInfo(info)
 	player := &Player{
-		Info:    GetSysInfo(),
-		KeysAPI: client.NewKeysAPI(etcdClient),
+		Info:   info,
+		client: etcdClient,
 	}
 	return player
 }

@@ -10,15 +10,15 @@ import (
 func (c *Conductor) SetUser(user *common.UserInfo) error {
 	key := common.ETCD_PREFIX_USERS_INFO + user.Id
 	value, _ := json.Marshal(*user)
-	_, err := c.KeysAPI.Set(context.Background(), key, string(value), nil)
+	_, err := c.client.Put(context.Background(), key, string(value), nil)
 	return err
 }
 
 // Return all users stored in etcd
 func (c *Conductor) GetAllUser() ([]common.UserInfo, error) {
-	resp, err := c.KeysAPI.Get(context.Background(), common.ETCD_PREFIX_USERS_INFO, nil)
+	resp, err := c.client.Get(context.Background(), common.ETCD_PREFIX_USERS_INFO, nil)
 	var users []common.UserInfo
-	for _, v := range resp.Node.Nodes {
+	for _, v := range resp.Kvs {
 		var user common.UserInfo
 		json.Unmarshal([]byte(v.Value), &user)
 		users = append(users, user)
@@ -28,16 +28,18 @@ func (c *Conductor) GetAllUser() ([]common.UserInfo, error) {
 
 // Query a user according to id
 func (c *Conductor) GetUser(id string) (*common.UserInfo, error) {
-	resp, err := c.KeysAPI.Get(context.Background(), common.ETCD_PREFIX_USERS_INFO+id, nil)
+	resp, err := c.client.Get(context.Background(), common.ETCD_PREFIX_USERS_INFO+id, nil)
 	if nil != err {
 		return nil, err
 	}
-	var user = new(common.UserInfo)
-	json.Unmarshal([]byte(resp.Node.Value), user)
-	return user, nil
+	var user common.UserInfo
+	for _, v := range resp.Kvs {
+		json.Unmarshal([]byte(v.Value), &user)
+	}
+	return &user, nil
 }
 
-func (c *Conductor) DeleteUser(user *common.UserInfo) error {
+func (c *Conductor) DeleteUser(id string) error {
 	return nil
 }
 

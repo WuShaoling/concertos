@@ -3,26 +3,26 @@ package etcd
 import (
 	"context"
 	"encoding/json"
-	"github.com/coreos/etcd/client"
 	"log"
 	"github.com/concertos/common"
+	"github.com/coreos/etcd/clientv3"
+	"fmt"
 )
 
-func (c *Conductor) PlayerExpire(info *common.PlayerInfo) {
-	info.State = common.PAUSED
-	key := common.ETCD_PREFIX_PLAYERS_INFO + info.Id
-	value, _ := json.Marshal(info)
-	_, err := c.KeysAPI.Set(context.Background(), key, string(value), &client.SetOptions{})
-	if err != nil {
-		log.Println("Error PlayerExpire() ", info.Id, " : ", err)
-	}
-}
-
-func (c *Conductor) SetPlayer(info *common.PlayerInfo) error {
+func (c *Conductor) PutPlayer(info *common.PlayerInfo) error {
 	return nil
 }
 
-func (c *Conductor) DeletePlayer(info *common.PlayerInfo) error {
+func (c *Conductor) DeletePlayer(id string) error {
+	var p = new(common.PlayerInfo)
+	p.Id = id
+	p.State = common.OFFLINE
+	key := common.ETCD_PREFIX_PLAYERS_INFO + id
+	value, _ := json.Marshal(p)
+	_, err := c.client.Put(context.Background(), key, string(value), nil)
+	if err != nil {
+		log.Println("Error PlayerExpire() ", p.Id, " : ", err)
+	}
 	return nil
 }
 
@@ -30,36 +30,31 @@ func (c *Conductor) GetPlayer(id string) (*common.PlayerInfo, error) {
 	return nil, nil
 }
 
+func (c *Conductor) GetAllPlayer() ([]common.PlayerInfo, error) {
+	return nil, nil
+}
+
 func (c *Conductor) Watch() {
-	watcher := c.KeysAPI.Watcher(common.ETCD_PREFIX_PLAYERS_INFO, &client.WatcherOptions{
-		Recursive: true,
-	})
-	for {
-		res, err := watcher.Next(context.Background())
-		if err != nil {
-			log.Println("Error watch players:", err)
-			break
-		}
-		switch  res.Action {
-		case "expire":
-			info := NodeToPlayerInfo(res.PrevNode)
-			log.Println("Expire player ", info.Id)
-			c.PlayerExpire(info)
-			break;
-		default:
-			info := NodeToPlayerInfo(res.Node)
-			log.Println("Watch player ", info.Id, " , ", res.Action)
-			break;
+	rch := c.client.Watch(context.Background(), common.ETCD_PREFIX_PLAYERS_INFO, clientv3.WithPrefix())
+	for wresp := range rch {
+		for _, ev := range wresp.Events {
+			switch  ev.Type.String() {
+			case "DELETE":
+				c.DeletePlayer(string(ev.Kv.Key))
+				break;
+			default:
+				break;
+			}
+			fmt.Printf("%s %q : %q\n", ev.Type, ev.Kv.Key, ev.Kv.Value)
 		}
 	}
 }
 
-func NodeToPlayerInfo(node *client.Node) *common.PlayerInfo {
-	log.Println(node.Value)
-	info := &common.PlayerInfo{}
-	err := json.Unmarshal([]byte(node.Value), info)
-	if err != nil {
-		log.Println("Error NodeToPlayerInfo : ", err)
-	}
-	return info
-}
+//func NodeToPlayerInfo(node []byte) *common.PlayerInfo {
+//	info := &common.PlayerInfo{}
+//	err := json.Unmarshal(node, info)
+//	if err != nil {
+//		log.Println("Error NodeToPlayerInfo : ", err)
+//	}
+//	return info
+//}

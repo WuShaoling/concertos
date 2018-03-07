@@ -3,45 +3,42 @@ package etcd
 import (
 	"github.com/concertos/common"
 	"sync"
-	"github.com/coreos/etcd/client"
+	"github.com/coreos/etcd/clientv3"
 	"time"
 	"log"
 )
 
 type ConductorApi interface {
-	//player etcd restapi
-	PlayerExpire(info *common.PlayerInfo)
-	SetPlayer(info *common.PlayerInfo) error
-	DeletePlayer(info *common.PlayerInfo) error
-	GetPlayer(id string) *common.PlayerInfo
+	//player etcd rest api
+	PutPlayer(info *common.PlayerInfo) error
+	GetPlayer(id string) (*common.PlayerInfo, error)
+	GetAllPlayer() ([]common.PlayerInfo, error)
+	DeletePlayer(id string) error
 
-	//user etcd restapi
-	SetUser(user *common.UserInfo) error
+	//user etcd rest api
+	PutUser(user *common.UserInfo) error
 	GetAllUser() ([]common.UserInfo, error)
 	GetUser(id string) (*common.UserInfo, error)
-	DeleteUser(user *common.UserInfo) error
-	UpdateUser(user *common.UserInfo) error
+	DeleteUser(id string) error
 }
 
 type Conductor struct {
-	KeysAPI client.KeysAPI
+	client clientv3.Client
 }
 
 func NewConductor() *Conductor {
-	cfg := client.Config{
-		Endpoints:               common.GetEtcdPoints(),
-		Transport:               client.DefaultTransport,
-		HeaderTimeoutPerRequest: time.Second,
-	}
+	etcdClient, err := clientv3.New(clientv3.Config{
+		Endpoints:   common.GetEtcdPoints(),
+		DialTimeout: 2 * time.Second,
+	})
 
-	etcdClient, err := client.New(cfg)
 	if err != nil {
-		log.Fatal("Error: cannot connect to etcd:", err)
+		log.Fatal("Error: new etcd client error:", err)
 		return nil
 	}
 
 	conductor := &Conductor{
-		KeysAPI: client.NewKeysAPI(etcdClient),
+		client: *etcdClient,
 	}
 	return conductor
 }

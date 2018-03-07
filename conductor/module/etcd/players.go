@@ -13,8 +13,8 @@ func (c *Conductor) PlayerExpire(info *common.PlayerInfo) {
 	key := common.ETCD_PREFIX_PLAYERS_INFO + info.Id
 	value, _ := json.Marshal(info)
 	_, err := c.KeysAPI.Set(context.Background(), key, string(value), &client.SetOptions{})
-	if (err != nil) {
-		log.Println("Error update player state : ", err, " , ", info.Id)
+	if err != nil {
+		log.Println("Error PlayerExpire() ", info.Id, " : ", err)
 	}
 }
 
@@ -26,8 +26,8 @@ func (c *Conductor) DeletePlayer(info *common.PlayerInfo) error {
 	return nil
 }
 
-func (c *Conductor) GetPlayer(id string) *common.PlayerInfo {
-	return nil
+func (c *Conductor) GetPlayer(id string) (*common.PlayerInfo, error) {
+	return nil, nil
 }
 
 func (c *Conductor) Watch() {

@@ -6,8 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	"time"
 	"github.com/concertos/conductor/module/etcd"
-	"github.com/concertos/conductor/module/api"
-	"flag"
+	"github.com/concertos/conductor/module/restapi"
 )
 
 var upgrader = websocket.Upgrader{
@@ -66,11 +65,11 @@ func StartConductor() {
 	c := etcd.GetConductor()
 	go c.Watch()
 
-	api.Start()
+	restapi.Start()
 
-	var addr = flag.String("addr", "0.0.0.0:8080", "service address")
-	flag.Parse()
-	http.HandleFunc("/consh", ws)
-	http.HandleFunc("/player", playerWs)
-	log.Fatal(http.ListenAndServe(*addr, nil))
+	//var addr = flag.String("addr", "0.0.0.0:8080", "service address")
+	//flag.Parse()
+	//http.HandleFunc("/consh", ws)
+	//http.HandleFunc("/player", playerWs)
+	//log.Fatal(http.ListenAndServe(*addr, nil))
 }

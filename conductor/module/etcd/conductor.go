@@ -9,16 +9,18 @@ import (
 )
 
 type ConductorApi interface {
-	//player etcd api
-	PlayerExpire(info *common.PlayerInfo) error
+	//player etcd restapi
+	PlayerExpire(info *common.PlayerInfo)
 	SetPlayer(info *common.PlayerInfo) error
 	DeletePlayer(info *common.PlayerInfo) error
 	GetPlayer(id string) *common.PlayerInfo
 
-	//user etcd api
-	AddUser(info *common.UserInfo) error
-	DeleteUser(info *common.UserInfo) error
-	UpdateUser(info *common.UserInfo) error
+	//user etcd restapi
+	SetUser(user *common.UserInfo) error
+	GetAllUser() ([]common.UserInfo, error)
+	GetUser(id string) (*common.UserInfo, error)
+	DeleteUser(user *common.UserInfo) error
+	UpdateUser(user *common.UserInfo) error
 }
 
 type Conductor struct {

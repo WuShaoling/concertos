@@ -3,7 +3,7 @@ package etcd
 import (
 	"github.com/concertos/common"
 	"sync"
-	"github.com/coreos/etcd/clientv3"
+	"github.com/concertos/conductor/module/restapi"
 )
 
 //type ConductorApi interface {
@@ -22,8 +22,8 @@ import (
 //}
 
 type Conductor struct {
-	ClientV3    *clientv3.Client
 	MyEtcdClent *common.MyEtcdClient
+	RestApi     *restapi.RestApi
 }
 
 var conductor *Conductor
@@ -33,7 +33,7 @@ func GetConductor() *Conductor {
 	once.Do(func() {
 		conductor = &Conductor{
 			MyEtcdClent: common.GetMyEtcdClient(),
-			ClientV3:    common.GetClientV3(),
+			RestApi:     restapi.GetRestApi(),
 		}
 	})
 	return conductor

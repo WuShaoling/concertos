@@ -16,7 +16,6 @@ import (
 )
 
 type Player struct {
-	ClientV3     *clientv3.Client
 	MyEtcdClient *common.MyEtcdClient
 	Info         *common.PlayerInfo
 }
@@ -34,8 +33,9 @@ func GetSysInfo(info *common.PlayerInfo) {
 
 func (p *Player) HeartBeat() {
 	// set player info
-	key := common.ETCD_PREFIX_USERS_INFO + p.Info.Id
+	key := common.ETCD_PREFIX_PLAYERS_INFO + p.Info.Id
 	value, _ := json.Marshal(p.Info)
+	log.Println(key, value)
 	p.MyEtcdClient.Put(key, string(value), nil)
 
 	// update player is alive
@@ -43,7 +43,9 @@ func (p *Player) HeartBeat() {
 		key := common.ETCD_PREFIX_PLAYERS_ALIVE + p.Info.Id
 		value, _ := json.Marshal(p.Info.Id)
 
-		resp, err := p.ClientV3.Grant(context.TODO(), common.HEART_BEAT)
+		log.Println(key, value)
+
+		resp, err := p.MyEtcdClient.GetClientV3().Grant(context.TODO(), common.HEART_BEAT)
 		if err != nil {
 			log.Println(err)
 		}
@@ -64,7 +66,6 @@ func NewPlayer() *Player {
 	player := &Player{
 		Info:         info,
 		MyEtcdClient: common.GetMyEtcdClient(),
-		ClientV3:     common.GetClientV3(),
 	}
 	return player
 }

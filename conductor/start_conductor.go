@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/websocket"
 	"time"
 	"github.com/concertos/conductor/module/etcd"
-	"github.com/concertos/conductor/module/restapi"
 )
 
 var upgrader = websocket.Upgrader{
@@ -65,7 +64,7 @@ func StartConductor() {
 	c := etcd.GetConductor()
 	go c.Watch()
 
-	restapi.Start()
+	c.RestApi.Start()
 
 	//var addr = flag.String("addr", "0.0.0.0:8080", "service address")
 	//flag.Parse()

@@ -12,7 +12,7 @@ import (
 func (c *Conductor) PutPlayer(info *common.PlayerInfo) error {
 	key := common.ETCD_PREFIX_PLAYERS_INFO + info.Id
 	value, _ := json.Marshal(info)
-	_, err := c.client.Put(context.Background(), key, string(value), nil)
+	_, err := c.MyEtcdClent.Put(key, string(value), nil)
 	if err != nil {
 		log.Println("Error PutPlayer() ", info.Id, " : ", err)
 	}
@@ -25,7 +25,7 @@ func (c *Conductor) DeletePlayer(id string) error {
 	p.State = common.OFFLINE
 	key := common.ETCD_PREFIX_PLAYERS_INFO + id
 	value, _ := json.Marshal(p)
-	_, err := c.client.Put(context.Background(), key, string(value), nil)
+	_, err := c.MyEtcdClent.Put(key, string(value), nil)
 	if err != nil {
 		log.Println("Error PlayerExpire() ", p.Id, " : ", err)
 	}
@@ -41,7 +41,7 @@ func (c *Conductor) GetAllPlayer() ([]common.PlayerInfo, error) {
 }
 
 func (c *Conductor) Watch() {
-	rch := c.client.Watch(context.Background(), common.ETCD_PREFIX_PLAYERS_INFO, clientv3.WithPrefix())
+	rch := c.MyEtcdClent.GetClientV3().Watch(context.Background(), common.ETCD_PREFIX_PLAYERS_INFO, clientv3.WithPrefix())
 	for wresp := range rch {
 		for _, ev := range wresp.Events {
 			switch  ev.Type.String() {

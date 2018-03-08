@@ -7,6 +7,7 @@ import (
 	"github.com/concertos/common"
 	"log"
 	"github.com/coreos/etcd/clientv3"
+	"github.com/coreos/etcd/error"
 )
 
 type UserResource struct {
@@ -48,67 +49,58 @@ func (u UserResource) WebService() *restful.WebService {
 	return ws
 }
 
-func (u *UserResource) getAllUsers(request *restful.Request, response *restful.Response) {
-	//var pi *interface{}
-	pi := new(interface{})
-	*pi = &[]common.PlayerInfo{}
-
-	err := u.myEtcdClient.Get(pi, common.ETCD_PREFIX_PLAYERS_INFO, clientv3.WithPrefix())
-	log.Println(*pi)
-	log.Println(err)
-
-	//c := etcd.GetConductor()
-	//user, err := c.GetUser(request.PathParameter("user-id"))
-	//if err != nil {
-	//	response.WriteError(http.StatusInternalServerError, err)
-	//	return
-	//}
-	response.WriteEntity(nil)
-	//var users []common.PlayerInfo
-	//err := u.myEtcdClient.Get(&users, common.ETCD_PREFIX_PLAYERS_INFO, clientv3.WithPrefix())
-	//if nil != err {
-	//	log.Println(err)
-	//	response.WriteError(http.StatusInternalServerError, err)
-	//}
-	//log.Println(users)
-	//c := etcd.GetConductor()
-	//users, err := c.GetAllUser()
-	//if err != nil {
-	//	response.WriteError(http.StatusInternalServerError, err)
-	//	return
-	//}
-	//response.WriteEntity(users)
+func (ur *UserResource) getAllUsers(request *restful.Request, response *restful.Response) {
+	users := new(interface{})
+	*users = &[]common.PlayerInfo{}
+	err := ur.myEtcdClient.Get(users, common.ETCD_PREFIX_PLAYERS_INFO, clientv3.WithPrefix())
+	if err != nil {
+		log.Println(err)
+		response.WriteError(http.StatusInternalServerError, err)
+		return
+	}
+	response.WriteEntity(*users)
 }
 
-func (u *UserResource) getUser(request *restful.Request, response *restful.Response) {
-	var users []common.PlayerInfo
-	var a *interface{}
-	a = new(interface{})
-	*a = users
-
-	err := u.myEtcdClient.Get(a, common.ETCD_PREFIX_PLAYERS_INFO, clientv3.WithPrefix())
-	log.Println(users)
-	log.Println(err)
-
-	//c := etcd.GetConductor()
-	//user, err := c.GetUser(request.PathParameter("user-id"))
-	//if err != nil {
-	//	response.WriteError(http.StatusInternalServerError, err)
-	//	return
-	//}
-	print(users)
-	response.WriteEntity(nil)
+func (ur *UserResource) getUser(request *restful.Request, response *restful.Response) {
+	users := new(interface{})
+	*users = &[]common.PlayerInfo{}
+	err := ur.myEtcdClient.Get(users,
+		common.ETCD_PREFIX_PLAYERS_INFO+request.PathParameter("user-id"), clientv3.WithPrefix())
+	if err != nil {
+		log.Println(err)
+		response.WriteError(http.StatusInternalServerError, err)
+		return
+	}
+	response.WriteEntity(*users)
 }
 
-func (u *UserResource) createUser(request *restful.Request, response *restful.Response) {
-	//c := etcd.GetConductor()
-	//var user = new(common.UserInfo)
-	//err := request.ReadEntity(user)
-	//if err != nil { //read content error
-	//	log.Println("Error createUser() : ", err)
-	//	response.WriteError(http.StatusInternalServerError, err)
-	//	return
-	//}
+func (ur *UserResource) createUser(request *restful.Request, response *restful.Response) {
+
+	//read content
+	var user = new(common.UserInfo)
+	err := request.ReadEntity(user)
+	if err != nil { //read content error
+		log.Println(err)
+		response.WriteError(http.StatusInternalServerError, err)
+		return
+	}
+
+	// check if userid exist
+	users := new(interface{})
+	*users = &[]common.PlayerInfo{}
+	err = ur.myEtcdClient.Get(users, common.ETCD_PREFIX_PLAYERS_INFO, clientv3.WithPrefix())
+
+	t := *user
+	log.Println(t)
+
+	if nil != err {
+		if ur.myEtcdClient.GetErrorType(err) != error.EcodeKeyNotFound {
+			log.Println("Error StatusInternalServerError : ", err)
+			response.WriteError(http.StatusInternalServerError, err)
+			return
+		}
+	}
+
 	//
 	//u1, err1 := c.GetUser(user.Id)
 	//

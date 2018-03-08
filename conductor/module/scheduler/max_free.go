@@ -3,6 +3,11 @@ package scheduler
 type MaxFreeAlgorithm struct {
 }
 
-func (maxfree MaxFreeAlgorithm) GetPlayerId() string {
+func GetMaxFreeAlgorithm() *MaxFreeAlgorithm {
+	return &MaxFreeAlgorithm{
+	}
+}
+
+func (mfa *MaxFreeAlgorithm) GetPlayerId() string {
 	return ""
 }

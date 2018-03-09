@@ -1,16 +1,25 @@
 package manager
 
-import "sync"
+import (
+	"sync"
+)
 
-type Manage struct {
+func (m *Manager) Start() {
+	go m.PlayerManager.Watch()
 }
 
-var manage *Manage
+var manager *Manager
 var once sync.Once
 
-func GetManage() *Manage {
+type Manager struct {
+	PlayerManager *PlayerManager
+}
+
+func GetManage() *Manager {
 	once.Do(func() {
-		manage = &Manage{}
+		manager = &Manager{
+			PlayerManager: GetPlayerManager(),
+		}
 	})
-	return manage
+	return manager
 }

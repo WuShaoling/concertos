@@ -2,19 +2,30 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"github.com/concertos/conductor"
 	"github.com/concertos/player"
+	"log"
 )
 
 func main() {
-	var role = flag.String("role", "", "conductor | player")
+	var role = flag.String("r", "", "conductor | player")
 	flag.Parse()
 	if *role == "conductor" {
-		conductor.StartConductor()
+		c := conductor.GetConductor()
+
+		// start manage module
+		c.Manager.Start()
+
+		// start rest api module
+		c.RestApi.Start()
+
+		// start websocket server module
+		c.WebSocket.Start()
 	} else if *role == "player" {
-		player.StartPlayer()
+		p := player.GetEtcdClient()
+		p.Manager.Start()
+		p.WebSocket.Start()
 	} else {
-		fmt.Println("Error args")
+		log.Fatal("Error args")
 	}
 }

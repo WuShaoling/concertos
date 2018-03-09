@@ -7,15 +7,15 @@ import (
 	"sync"
 )
 
-type RestApi struct {
-	playerResource    *PlayerResource
-	userResource      *UserResource
-	containerResource *ContainerResource
-}
-
 func (rest *RestApi) Start() {
-	user := UserResource{}
-	restful.DefaultContainer.Add(user.WebService())
+	ur := UserResource{}
+	restful.DefaultContainer.Add(ur.WebService())
+
+	pr := PlayerResource{}
+	restful.DefaultContainer.Add(pr.WebService())
+
+	cr := ContainerResource{}
+	restful.DefaultContainer.Add(cr.WebService())
 
 	log.Printf("start listening on localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
@@ -24,12 +24,18 @@ func (rest *RestApi) Start() {
 var restApi *RestApi
 var once sync.Once
 
+type RestApi struct {
+	PlayerResource    *PlayerResource
+	UserResource      *UserResource
+	ContainerResource *ContainerResource
+}
+
 func GetRestApi() *RestApi {
 	once.Do(func() {
 		restApi = &RestApi{
-			userResource:      GetUserResource(),
-			playerResource:    GetPlayerResource(),
-			containerResource: GetContainerResource(),
+			UserResource:      GetUserResource(),
+			PlayerResource:    GetPlayerResource(),
+			ContainerResource: GetContainerResource(),
 		}
 	})
 	return restApi

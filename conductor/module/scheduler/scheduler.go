@@ -3,8 +3,8 @@ package scheduler
 import "sync"
 
 type Scheduler struct {
-	randomAlgorithm  *RandomAlgorithm
-	maxFreeAlgorithm *MaxFreeAlgorithm
+	RandomAlgorithm  *RandomAlgorithm
+	MaxFreeAlgorithm *MaxFreeAlgorithm
 }
 
 var scheduler *Scheduler
@@ -13,8 +13,8 @@ var once sync.Once
 func GetScheduler() *Scheduler {
 	once.Do(func() {
 		scheduler = &Scheduler{
-			randomAlgorithm:  GetRandomAlgorithm(),
-			maxFreeAlgorithm: GetMaxFreeAlgorithm(),
+			RandomAlgorithm:  GetRandomAlgorithm(),
+			MaxFreeAlgorithm: GetMaxFreeAlgorithm(),
 		}
 	})
 	return scheduler

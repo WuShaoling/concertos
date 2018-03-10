@@ -7,17 +7,18 @@ import (
 	"github.com/concertos/module/common"
 	"github.com/coreos/etcd/clientv3"
 	"errors"
+	"strings"
 )
 
 func (pm *PlayerManager) expirePlayer(id string) error {
 	// 1. get player info accounding to alive id
-	resp, err := pm.myEctdClient.Get(common.ETCD_PREFIX_PLAYER_INFO + id)
+	strs := strings.Split(id, "/")
+	resp, err := pm.myEctdClient.Get(common.ETCD_PREFIX_PLAYER_INFO + strs[len(strs)-1])
 	if nil != err {
 		return err
 	}
 	players := *pm.myEctdClient.ConvertToPlayerInfo(resp)
 	if len(players) <= 0 {
-		log.Println("Error : player ", id, " not exist")
 		return errors.New("Error : player " + id + " not exist")
 	}
 
@@ -36,14 +37,12 @@ func (pm *PlayerManager) Watch() {
 	rch := pm.myEctdClient.GetClientV3().Watch(context.Background(), common.ETCD_PREFIX_PLAYER_ALIVE, clientv3.WithPrefix())
 	for wresp := range rch {
 		for _, ev := range wresp.Events {
+			log.Printf("%s %q : %q\n", ev.Type, ev.Kv.Key, ev.Kv.Value)
 			switch  ev.Type.String() {
 			case "DELETE":
-				pm.expirePlayer(string(ev.Kv.Key))
-				break
+				log.Println(pm.expirePlayer(string(ev.Kv.Key)))
 			default:
-				break
 			}
-			log.Printf("%s %q : %q\n", ev.Type, ev.Kv.Key, ev.Kv.Value)
 		}
 	}
 }

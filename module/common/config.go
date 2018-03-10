@@ -3,8 +3,8 @@ package common
 import "time"
 
 const NAMESPACE = "cos"
-const TTL = 20
-const HEART_BEAT = 5
+const TTL = 15
+const HEART_BEAT = 3
 
 const (
 	PLAYER_STATE         = iota //0

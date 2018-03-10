@@ -3,7 +3,6 @@ package manager
 import "sync"
 
 func (m *Manager) Start() {
-	m.PlayerManager.HeartBeat()
 }
 
 var manager *Manager

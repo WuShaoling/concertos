@@ -17,7 +17,7 @@ func (rest *RestApi) Start() {
 	cr := ContainerResource{}
 	restful.DefaultContainer.Add(cr.WebService())
 
-	log.Printf("start listening on localhost:8080")
+	log.Printf("Start rest api, listening on localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 

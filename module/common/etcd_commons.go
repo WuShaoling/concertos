@@ -98,6 +98,7 @@ func (e *MyEtcdClient) GetClientV3() (*clientv3.Client) {
 		if err != nil {
 			log.Fatal("Error: new common client error:", err)
 		}
+		//defer ectdClientV3.Close()
 	})
 	return ectdClientV3
 }
@@ -112,39 +113,3 @@ func GetMyEtcdClient() *MyEtcdClient {
 	})
 	return myEtcdClient
 }
-
-//func (e *myEtcdClient) Convert(ret *interface{}, resp *clientv3.GetResponse) {
-//	log.Println("type: ", reflect.TypeOf(ret), " , value: ", reflect.ValueOf(ret))
-//	switch reflect.TypeOf(*ret) {
-//	case reflect.TypeOf(&[]PlayerInfo{}):
-//		var arr []PlayerInfo
-//		for _, v := range resp.Kvs {
-//			var info PlayerInfo
-//			json.Unmarshal([]byte(v.Value), &info)
-//			arr = append(arr, info)
-//		}
-//		reflect.ValueOf(ret).Elem().Set(reflect.ValueOf(&arr))
-//		break
-//	case reflect.TypeOf(&[]UserInfo{}):
-//		var arr []UserInfo
-//		for _, v := range resp.Kvs {
-//			var info UserInfo
-//			json.Unmarshal([]byte(v.Value), &info)
-//			arr = append(arr, info)
-//		}
-//		reflect.ValueOf(ret).Elem().Set(reflect.ValueOf(&arr))
-//		break
-//	case reflect.TypeOf(&[]ContainerInfo{}):
-//		var arr []ContainerInfo
-//		for _, v := range resp.Kvs {
-//			var info ContainerInfo
-//			json.Unmarshal([]byte(v.Value), &info)
-//			arr = append(arr, info)
-//		}
-//		reflect.ValueOf(ret).Elem().Set(reflect.ValueOf(&arr))
-//		break
-//	default:
-//		log.Println("Unknown type")
-//		break
-//	}
-//}

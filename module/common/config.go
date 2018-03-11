@@ -3,8 +3,8 @@ package common
 import "time"
 
 const NAMESPACE = "cos"
-const TTL = 15
-const HEART_BEAT = 3
+const TTL = 18
+const HEART_BEAT = 5
 
 const (
 	PLAYER_STATE         = iota //0
@@ -24,7 +24,6 @@ const (
 	CONTAINER_STATE_STOPPED        //2
 )
 
-// common prefix
 const ETCD_PREFIX_CONATINER_WAIT_START = "/container/wait-start/"
 const ETCD_PREFIX_CONTAINER_ALIVE = "/container/alive/"
 const ETCD_PREFIX_CONTAINER_INFO = "/container/info/"

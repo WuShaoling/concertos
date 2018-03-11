@@ -33,8 +33,8 @@ func (ws *WebSocket) run() {
 					delete(ws.Clients, client)
 				}
 			}
-		case clientid := <-ws.writeTo:
-			message := <-ws.writeTo
+		case clientid := <-ws.WriteTo:
+			message := <-ws.WriteTo
 			for client := range ws.Clients {
 				if client.Id == string(clientid) {
 					select {
@@ -67,14 +67,14 @@ type WebSocket struct {
 	broadcast  chan []byte
 	register   chan *Client
 	unregister chan *Client
-	writeTo    chan []byte
+	WriteTo    chan []byte
 }
 
 func GetWebSocket() *WebSocket {
 	once.Do(func() {
 		webSocket = &WebSocket{
 			broadcast:  make(chan []byte),
-			writeTo:    make(chan []byte),
+			WriteTo:    make(chan []byte),
 			register:   make(chan *Client),
 			unregister: make(chan *Client),
 			Clients:    make(map[*Client]bool),

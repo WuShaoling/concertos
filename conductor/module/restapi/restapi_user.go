@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"time"
 	"github.com/shortid"
+	"github.com/concertos/module/entity"
 )
 
 func (u UserResource) WebService() *restful.WebService {
@@ -20,22 +21,22 @@ func (u UserResource) WebService() *restful.WebService {
 	ws.Route(ws.GET("/").To(u.getAllUsers).
 		Doc("get all users").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
-		Writes([]common.UserInfo{}).
-		Returns(http.StatusOK, "OK", []common.UserInfo{}).
+		Writes([]entity.UserInfo{}).
+		Returns(http.StatusOK, "OK", []entity.UserInfo{}).
 		Returns(http.StatusInternalServerError, "InternalServerError", "error info"))
 
 	ws.Route(ws.GET("/{userid}").To(u.getUser).
 		Doc("get a user").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
 		Param(ws.PathParameter("userid", "identifier of the user").DataType("string")).
-		Writes(common.UserInfo{}).
-		Returns(http.StatusOK, "OK", common.UserInfo{}).
+		Writes(entity.UserInfo{}).
+		Returns(http.StatusOK, "OK", entity.UserInfo{}).
 		Returns(http.StatusInternalServerError, "InternalServerError", "error info"))
 
 	ws.Route(ws.PUT("").To(u.createUser).
 		Doc("create a user").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
-		Reads(common.UserInfo{}).
+		Reads(entity.UserInfo{}).
 		Returns(http.StatusOK, "OK", nil).
 		Returns(http.StatusFound, "User already exist", "error info").
 		Returns(http.StatusInternalServerError, "InternalServerError", "error info"))
@@ -52,7 +53,7 @@ func (ur *UserResource) getAllUsers(request *restful.Request, response *restful.
 }
 
 func (ur *UserResource) getUser(request *restful.Request, response *restful.Response) {
-	if resp, err := ur.myEtcdClient.Get(common.ETCD_PREFIX_USER_INFO+request.PathParameter("userid"), clientv3.WithPrefix()); err != nil {
+	if resp, err := ur.myEtcdClient.Get(common.ETCD_PREFIX_USER_INFO+request.PathParameter("userid"), nil); err != nil {
 		response.WriteError(http.StatusInternalServerError, err)
 	} else {
 		response.WriteEntity(*ur.myEtcdClient.ConvertToUserInfo(resp))
@@ -61,7 +62,7 @@ func (ur *UserResource) getUser(request *restful.Request, response *restful.Resp
 
 func (ur *UserResource) createUser(request *restful.Request, response *restful.Response) {
 	// 1. read content
-	var user = new(common.UserInfo)
+	var user = new(entity.UserInfo)
 	if err := request.ReadEntity(user); err != nil {
 		response.WriteError(http.StatusInternalServerError, err)
 		return

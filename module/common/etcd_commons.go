@@ -9,35 +9,36 @@ import (
 	"time"
 	"sync"
 	"encoding/json"
+	"github.com/concertos/module/entity"
 )
 
 type MyEtcdClient struct {
 }
 
-func (e *MyEtcdClient) ConvertToUserInfo(resp *clientv3.GetResponse) *[]UserInfo {
-	var arr []UserInfo
+func (e *MyEtcdClient) ConvertToUserInfo(resp *clientv3.GetResponse) *[]entity.UserInfo {
+	var arr []entity.UserInfo
 	for _, v := range resp.Kvs {
-		var info UserInfo
+		var info entity.UserInfo
 		json.Unmarshal([]byte(v.Value), &info)
 		arr = append(arr, info)
 	}
 	return &arr
 }
 
-func (e *MyEtcdClient) ConvertToPlayerInfo(resp *clientv3.GetResponse) *[]PlayerInfo {
-	var arr []PlayerInfo
+func (e *MyEtcdClient) ConvertToPlayerInfo(resp *clientv3.GetResponse) *[]entity.PlayerInfo {
+	var arr []entity.PlayerInfo
 	for _, v := range resp.Kvs {
-		var info PlayerInfo
+		var info entity.PlayerInfo
 		json.Unmarshal([]byte(v.Value), &info)
 		arr = append(arr, info)
 	}
 	return &arr
 }
 
-func (e *MyEtcdClient) ConvertToContainerInfo(resp *clientv3.GetResponse) *[]ContainerInfo {
-	var arr []ContainerInfo
+func (e *MyEtcdClient) ConvertToContainerInfo(resp *clientv3.GetResponse) *[]entity.ContainerInfo {
+	var arr []entity.ContainerInfo
 	for _, v := range resp.Kvs {
-		var info ContainerInfo
+		var info entity.ContainerInfo
 		json.Unmarshal([]byte(v.Value), &info)
 		arr = append(arr, info)
 	}
@@ -98,7 +99,7 @@ func (e *MyEtcdClient) GetClientV3() (*clientv3.Client) {
 		if err != nil {
 			log.Fatal("Error: new common client error:", err)
 		}
-		//defer ectdClientV3.Close()
+		defer ectdClientV3.Close()
 	})
 	return ectdClientV3
 }

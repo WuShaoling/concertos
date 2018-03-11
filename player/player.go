@@ -16,16 +16,32 @@ import (
 	"github.com/concertos/player/util"
 	"runtime"
 	"context"
+	"github.com/concertos/module/entity"
 )
 
 type Player struct {
 	myEtcdClient *common.MyEtcdClient
-	Info         *common.PlayerInfo
+	Info         *entity.PlayerInfo
 	Manager      *manager.Manager
 	WebSocket    *websocket.WebSocket
 }
 
-func getSysInfo(info *common.PlayerInfo) *common.PlayerInfo {
+func (p *Player) Register() {
+	// send register msg to conductor
+	msg, _ := json.Marshal(&common.WebSocketMessage{
+		MessageType: common.P_WS_INSTALL_CONTAINER,
+		Content:     []byte(p.Info.Id),
+	})
+	p.WebSocket.Send <- msg
+
+	// write msg to etcd
+	key := common.ETCD_PREFIX_PLAYER_INFO + p.Info.Id
+	value, _ := json.Marshal(p.Info)
+	log.Println(key, string(value))
+	p.myEtcdClient.Put(key, string(value), nil)
+}
+
+func getSysInfo(info *entity.PlayerInfo) *entity.PlayerInfo {
 	info.Id = shortid.MustGenerate()
 	info.State = common.PLAYER_STATE_ONLINE
 
@@ -42,11 +58,6 @@ func getSysInfo(info *common.PlayerInfo) *common.PlayerInfo {
 }
 
 func (p *Player) KeepAlive() {
-	key := common.ETCD_PREFIX_PLAYER_INFO + p.Info.Id
-	value, _ := json.Marshal(p.Info)
-	log.Println(key, string(value))
-	p.myEtcdClient.Put(key, string(value), nil)
-
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
@@ -61,14 +72,11 @@ func (p *Player) KeepAlive() {
 
 			log.Println(key, string(value))
 			resp, err := p.myEtcdClient.GetClientV3().Grant(context.TODO(), common.TTL)
-			log.Println(common.TTL)
-			log.Println(resp.ID)
 			if err != nil {
 				log.Println(err)
 			} else if _, err = p.myEtcdClient.GetClientV3().Put(context.TODO(), key, string(value), clientv3.WithLease(resp.ID)); nil != err {
 				log.Println(err)
 			}
-
 		case <-interrupt:
 			log.Println("System interrupt, heart beat interrupt, ticker stop")
 			return
@@ -83,8 +91,8 @@ func GetPlayer() *Player {
 	once.Do(func() {
 		player = &Player{
 			Manager:      manager.GetManage(),
-			WebSocket:    websocket.GetWetSocket(),
-			Info:         getSysInfo(new(common.PlayerInfo)),
+			WebSocket:    websocket.GetWebSocket(),
+			Info:         getSysInfo(new(entity.PlayerInfo)),
 			myEtcdClient: common.GetMyEtcdClient(),
 		}
 	})

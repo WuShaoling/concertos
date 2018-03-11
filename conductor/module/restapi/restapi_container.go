@@ -11,6 +11,8 @@ import (
 	"errors"
 	"github.com/concertos/module/dccp"
 	"encoding/json"
+	"github.com/concertos/conductor"
+	"github.com/concertos/module/entity"
 )
 
 func (cr *ContainerResource) WebService() *restful.WebService {
@@ -22,28 +24,28 @@ func (cr *ContainerResource) WebService() *restful.WebService {
 	ws.Route(ws.POST("/install").To(cr.installContainer).
 		Doc("install a container").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
-		Reads(common.ContainerInfo{}).
+		Reads(entity.ContainerInfo{}).
 		Returns(http.StatusOK, "OK", nil).
 		Returns(http.StatusInternalServerError, "InternalServerError", "error info"))
 
-	ws.Route(ws.POST("/start/").To(cr.startContainer).
+	ws.Route(ws.POST("/start/{container-id}").To(cr.startContainer).
 		Doc("start a container").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
-		Param(ws.PathParameter("player-id", "identifier of the player").DataType("string")).
+		Param(ws.PathParameter("container-id", "identifier of the container").DataType("string")).
 		Returns(http.StatusOK, "OK", nil).
 		Returns(http.StatusInternalServerError, "InternalServerError", "error info"))
 
 	ws.Route(ws.POST("/stop").To(cr.stopContainer).
 		Doc("stop a container").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
-		Reads(common.UserInfo{}).
+		Reads(entity.UserInfo{}).
 		Returns(http.StatusOK, "OK", nil).
 		Returns(http.StatusInternalServerError, "InternalServerError", "error info"))
 
 	ws.Route(ws.POST("/removeContainer").To(cr.stopContainer).
 		Doc("remove a container").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
-		Reads(common.UserInfo{}).
+		Reads(entity.UserInfo{}).
 		Returns(http.StatusOK, "OK", nil).
 		Returns(http.StatusInternalServerError, "InternalServerError", "error info"))
 
@@ -52,7 +54,7 @@ func (cr *ContainerResource) WebService() *restful.WebService {
 
 func (cr *ContainerResource) installContainer(request *restful.Request, response *restful.Response) {
 	// 1. get container from request
-	var container = new(common.ContainerInfo)
+	var container = new(entity.ContainerInfo)
 	if err := request.ReadEntity(container); err != nil {
 		response.WriteError(http.StatusInternalServerError, err)
 		return
@@ -86,14 +88,30 @@ func (cr *ContainerResource) installContainer(request *restful.Request, response
 }
 
 // player manage module waill receive put msg, then start
+func (cr *ContainerResource) startContainer(request *restful.Request, response *restful.Response) {
 
-func (cr *ContainerResource) startContainer(req *restful.Request, resp *restful.Response) {
-	// 1. put to etcd waitting start field
+	c := conductor.GetConductor()
 
+	// get container-id from param and
+	// get container-info from etcd, get player-id that container should run on
+	resp, err := cr.myEtcdClient.Get(common.ETCD_PREFIX_CONTAINER_INFO + request.PathParameter("container-id"))
+	if nil != err {
+		response.WriteError(http.StatusInternalServerError, err)
+		return
+	}
+	container := *cr.myEtcdClient.ConvertToContainerInfo(resp)
+	if 0 == len(container) {
+		response.WriteError(http.StatusInternalServerError, errors.New("Container not exist"))
+		return
+	}
+
+	// send msg to player and wait player reply
+	c.WebSocket.WriteTo <- []byte(container[0].PlayerId)
+	c.WebSocket.WriteTo <- []byte(common.P_WS_INSTALL_CONTAINER + container[0].PlayerId)
+
+	// return result
 
 	//
-
-
 
 }
 

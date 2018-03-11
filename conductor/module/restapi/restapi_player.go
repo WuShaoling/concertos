@@ -6,6 +6,7 @@ import (
 	"github.com/emicklei/go-restful-openapi"
 	"net/http"
 	"github.com/coreos/etcd/clientv3"
+	"github.com/concertos/module/entity"
 )
 
 func (pr *PlayerResource) WebService() *restful.WebService {
@@ -17,22 +18,22 @@ func (pr *PlayerResource) WebService() *restful.WebService {
 	ws.Route(ws.GET("/").To(pr.getAllPlayers).
 		Doc("get all players").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
-		Writes([]common.PlayerInfo{}).
-		Returns(http.StatusOK, "OK", []common.PlayerInfo{}).
+		Writes([]entity.PlayerInfo{}).
+		Returns(http.StatusOK, "OK", []entity.PlayerInfo{}).
 		Returns(http.StatusInternalServerError, "InternalServerError", "error info"))
 
 	ws.Route(ws.GET("/{playerid}").To(pr.getPlayer).
 		Doc("get player according to playerid").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
 		Param(ws.PathParameter("playerid", "identifier of the player").DataType("string")).
-		Writes([]common.PlayerInfo{}).
-		Returns(http.StatusOK, "OK", []common.PlayerInfo{}).
+		Writes([]entity.PlayerInfo{}).
+		Returns(http.StatusOK, "OK", []entity.PlayerInfo{}).
 		Returns(http.StatusInternalServerError, "InternalServerError", "error info"))
 
 	ws.Route(ws.PUT("").To(pr.addPlayer).
 		Doc("add a player").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
-		Reads(common.PlayerInfo{}).
+		Reads(entity.PlayerInfo{}).
 		Returns(http.StatusOK, "OK", nil).
 		Returns(http.StatusInternalServerError, "InternalServerError", "error info"))
 

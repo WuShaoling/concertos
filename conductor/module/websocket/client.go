@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/concertos/module/common"
-	"encoding/json"
 )
 
 const (
@@ -54,8 +52,6 @@ type Client struct {
 // ensures that there is at most one reader on a connection by executing all
 // reads from this goroutine.
 func (c *Client) readPump() {
-	log.Println("readPump")
-
 	defer func() {
 		c.hub.unregister <- c
 		c.conn.Close()
@@ -82,8 +78,6 @@ func (c *Client) readPump() {
 // application ensures that there is at most one writer to a connection by
 // executing all writes from this goroutine.
 func (c *Client) writePump() {
-	log.Println("writePump")
-
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
@@ -124,21 +118,8 @@ func (c *Client) writePump() {
 	}
 }
 
-func (c *Client) HandleMsg(message []byte) {
-	log.Println(string(message))
-	var wsm = new(common.WebSocketMessage)
-	if err := json.Unmarshal(message, wsm); err != nil {
-		log.Println("Erro handleMsg : ", err)
-		return
-	}
-	switch wsm.MessageType {
-	case common.P_WS_REGISTER_PLAYER:
-		c.Id = string(wsm.Content)
-	}
-}
-
-func serveWs(ws *WebSocket, w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
+func serveWs(ws *WebSocket, w *http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(*w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return

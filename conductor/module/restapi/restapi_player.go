@@ -19,46 +19,28 @@ func (pr *PlayerResource) WebService() *restful.WebService {
 		Doc("get all players").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
 		Writes([]entity.PlayerInfo{}).
-		Returns(http.StatusOK, "OK", []entity.PlayerInfo{}).
-		Returns(http.StatusInternalServerError, "InternalServerError", "error info"))
+		Returns(http.StatusOK, "OK", []entity.PlayerInfo{}))
 
 	ws.Route(ws.GET("/{playerid}").To(pr.getPlayer).
-		Doc("get player according to playerid").
+		Doc("get player according to player-id").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
 		Param(ws.PathParameter("playerid", "identifier of the player").DataType("string")).
 		Writes([]entity.PlayerInfo{}).
-		Returns(http.StatusOK, "OK", []entity.PlayerInfo{}).
-		Returns(http.StatusInternalServerError, "InternalServerError", "error info"))
-
-	ws.Route(ws.PUT("").To(pr.addPlayer).
-		Doc("add a player").
-		Metadata(restfulspec.KeyOpenAPITags, tags).
-		Reads(entity.PlayerInfo{}).
-		Returns(http.StatusOK, "OK", nil).
-		Returns(http.StatusInternalServerError, "InternalServerError", "error info"))
+		Returns(http.StatusOK, "OK", []entity.PlayerInfo{}))
 
 	return ws
 }
 
 func (pm *PlayerResource) getAllPlayers(request *restful.Request, response *restful.Response) {
-	if resp, err := pm.myEtcdClient.Get(common.ETCD_PREFIX_PLAYER_INFO, clientv3.WithPrefix()); nil != err {
-		response.WriteError(http.StatusInternalServerError, err)
-	} else {
-		response.WriteEntity(*pm.myEtcdClient.ConvertToPlayerInfo(resp))
-	}
+	players := *pm.myEtcdClient.ConvertToPlayerInfo(
+		pm.myEtcdClient.Get(common.ETCD_PREFIX_PLAYER_INFO, clientv3.WithPrefix()))
+	response.WriteEntity(players)
 }
 
 func (pm *PlayerResource) getPlayer(request *restful.Request, response *restful.Response) {
-	if resp, err := pm.myEtcdClient.Get(
-		common.ETCD_PREFIX_PLAYER_INFO+request.PathParameter("playerid"), clientv3.WithPrefix()); nil != err {
-		response.WriteError(http.StatusInternalServerError, err)
-	} else {
-		response.WriteEntity(*pm.myEtcdClient.ConvertToPlayerInfo(resp))
-	}
-}
-
-func (pm *PlayerResource) addPlayer(request *restful.Request, response *restful.Response) {
-	response.WriteEntity(nil)
+	key := common.ETCD_PREFIX_PLAYER_INFO + request.PathParameter("playerid")
+	player := *pm.myEtcdClient.ConvertToPlayerInfo(pm.myEtcdClient.Get(key, clientv3.WithPrefix()))
+	response.WriteEntity(player)
 }
 
 type PlayerResource struct {

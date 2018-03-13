@@ -19,10 +19,7 @@ func GetRandomAlgorithm() *RandomAlgorithm {
 }
 
 func (ra *RandomAlgorithm) GetPlayerId() (string, error) {
-	resp, err := ra.myEtcdClient.Get(common.ETCD_PREFIX_PLAYER_INFO, clientv3.WithPrefix())
-	if nil != err {
-		return "", err
-	}
+	resp := ra.myEtcdClient.Get(common.ETCD_PREFIX_PLAYER_INFO, clientv3.WithPrefix())
 	players := *ra.myEtcdClient.ConvertToPlayerInfo(resp)
 	if len(players) <= 0 {
 		return "", errors.New("No players are alive")

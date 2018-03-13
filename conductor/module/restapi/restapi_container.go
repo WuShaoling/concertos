@@ -10,9 +10,8 @@ import (
 	"github.com/concertos/conductor/module/scheduler"
 	"errors"
 	"github.com/concertos/module/dccp"
-	"encoding/json"
-	"github.com/concertos/conductor"
 	"github.com/concertos/module/entity"
+	"github.com/concertos/player/util"
 )
 
 func (cr *ContainerResource) WebService() *restful.WebService {
@@ -25,13 +24,6 @@ func (cr *ContainerResource) WebService() *restful.WebService {
 		Doc("install a container").
 		Metadata(restfulspec.KeyOpenAPITags, tags).
 		Reads(entity.ContainerInfo{}).
-		Returns(http.StatusOK, "OK", nil).
-		Returns(http.StatusInternalServerError, "InternalServerError", "error info"))
-
-	ws.Route(ws.POST("/start/{container-id}").To(cr.startContainer).
-		Doc("start a container").
-		Metadata(restfulspec.KeyOpenAPITags, tags).
-		Param(ws.PathParameter("container-id", "identifier of the container").DataType("string")).
 		Returns(http.StatusOK, "OK", nil).
 		Returns(http.StatusInternalServerError, "InternalServerError", "error info"))
 
@@ -78,41 +70,11 @@ func (cr *ContainerResource) installContainer(request *restful.Request, response
 	}
 
 	// 3. put to etcd
-	key := common.ETCD_PREFIX_CONTAINER_INFO + container.User + "/" + container.PlayerId + "/" + container.Id
-	value, _ := json.Marshal(container)
-	if _, err := cr.myEtcdClient.Put(key, string(value), nil); err != nil {
-		response.WriteError(http.StatusInternalServerError, err)
-		return
-	}
+	cr.myEtcdClient.Put(common.ETCD_PREFIX_CONTAINER_INFO+container.Id,
+		string(util.MyJsonMarshal(container)), nil)
+
+	// 4 return result
 	response.WriteHeaderAndEntity(http.StatusOK, nil)
-}
-
-// player manage module waill receive put msg, then start
-func (cr *ContainerResource) startContainer(request *restful.Request, response *restful.Response) {
-
-	c := conductor.GetConductor()
-
-	// get container-id from param and
-	// get container-info from etcd, get player-id that container should run on
-	resp, err := cr.myEtcdClient.Get(common.ETCD_PREFIX_CONTAINER_INFO + request.PathParameter("container-id"))
-	if nil != err {
-		response.WriteError(http.StatusInternalServerError, err)
-		return
-	}
-	container := *cr.myEtcdClient.ConvertToContainerInfo(resp)
-	if 0 == len(container) {
-		response.WriteError(http.StatusInternalServerError, errors.New("Container not exist"))
-		return
-	}
-
-	// send msg to player and wait player reply
-	c.WebSocket.WriteTo <- []byte(container[0].PlayerId)
-	c.WebSocket.WriteTo <- []byte(common.P_WS_INSTALL_CONTAINER + container[0].PlayerId)
-
-	// return result
-
-	//
-
 }
 
 func (cr *ContainerResource) stopContainer(req *restful.Request, resp *restful.Response) {

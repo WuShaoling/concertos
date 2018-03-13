@@ -45,36 +45,41 @@ func (e *MyEtcdClient) ConvertToContainerInfo(resp *clientv3.GetResponse) *[]ent
 	return &arr
 }
 
-func (e *MyEtcdClient) Put(key, val string, opts ...clientv3.OpOption) (*clientv3.PutResponse, error) {
+func (e *MyEtcdClient) Put(key, val string, opts ...clientv3.OpOption) (*clientv3.PutResponse) {
 	ctx, cancel := context.WithTimeout(context.Background(), REQUEST_TIMEOUT)
 	resp, err := ectdClientV3.Put(ctx, key, val)
 	cancel()
-	return resp, err
+	if nil != err {
+		log.Println("Error Put : ", err)
+	}
+	return resp
 }
 
-func (e *MyEtcdClient) Get(key string, opts ...clientv3.OpOption) (*clientv3.GetResponse, error) {
+func (e *MyEtcdClient) Get(key string, opts ...clientv3.OpOption) (*clientv3.GetResponse) {
 	ctx, cancel := context.WithTimeout(context.Background(), REQUEST_TIMEOUT)
 	resp, err := ectdClientV3.Get(ctx, key, opts ...)
 	cancel()
-	return resp, err
+	if nil != err {
+		log.Println("Error Get : ", err)
+	}
+	return resp
 }
 
-func (e *MyEtcdClient) Delete(key string, opts ...clientv3.OpOption) (*clientv3.DeleteResponse, error) {
+func (e *MyEtcdClient) Delete(key string, opts ...clientv3.OpOption) (*clientv3.DeleteResponse) {
 	ctx, cancel := context.WithTimeout(context.Background(), REQUEST_TIMEOUT)
 	resp, err := ectdClientV3.Delete(ctx, key, opts ...)
 	cancel()
-	return resp, err
+	if nil != err {
+		log.Println("Error Delete : ", err)
+	}
+	return resp
 }
 
-func (e *MyEtcdClient) CheckExist(id string) (bool, error) {
-	if resp, err := e.Get(id); err != nil {
-		return false, err
-	} else {
-		if len(resp.Kvs) > 0 {
-			return true, nil
-		}
+func (e *MyEtcdClient) CheckExist(id string) (bool) {
+	if e.Get(id).Count > 0 {
+		return true
 	}
-	return false, nil
+	return false
 }
 
 func (e *MyEtcdClient) GetErrorType(err error) int {

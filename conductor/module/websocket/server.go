@@ -5,13 +5,10 @@
 package websocket
 
 import (
-	"flag"
 	"log"
 	"net/http"
 	"sync"
 )
-
-var addr = flag.String("addr", ":8081", "http service address")
 
 func (ws *WebSocket) run() {
 	for {
@@ -51,12 +48,12 @@ func (ws *WebSocket) run() {
 }
 
 func (ws *WebSocket) Start() {
-	flag.Parse()
+	log.Println("Start websocket server, listen on localhost:8081")
 	go ws.run()
 	http.HandleFunc("/ws", func(writer http.ResponseWriter, request *http.Request) {
-		serveWs(ws, writer, request)
+		serveWs(ws, &writer, request)
 	})
-	log.Fatal(http.ListenAndServe(*addr, nil))
+	log.Fatal(http.ListenAndServe(":8081", nil))
 }
 
 var webSocket *WebSocket

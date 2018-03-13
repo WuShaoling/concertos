@@ -8,31 +8,14 @@ import (
 	"log"
 	"github.com/gorilla/websocket"
 	"time"
-	"encoding/json"
 	"github.com/concertos/module/common"
-	"github.com/concertos/module/entity"
 )
-
-const WS_SERVER_ADDR = "localhost:8081"
-
-func (ws *WebSocket) handleInstallContainerEvent(wsm *common.WebSocketMessage) {
-	var cInfo = new(entity.ContainerInfo)
-	if err := json.Unmarshal(wsm.Content, cInfo); err != nil {
-		log.Println("Erro handle msg : ", err)
-		wsm.Content = []byte(err.Error())
-	} else {
-
-		wsm.Content = []byte("Operator success")
-	}
-	res, _ := json.Marshal(&wsm)
-	ws.Send <- res
-}
 
 func (ws *WebSocket) Start() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	u := url.URL{Scheme: "ws", Host: WS_SERVER_ADDR, Path: "/ws"}
+	u := url.URL{Scheme: "ws", Host: common.GetWebSocketServerAddress(), Path: "/ws"}
 	log.Printf("connecting to %s", u.String())
 
 	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
@@ -53,21 +36,7 @@ func (ws *WebSocket) Start() {
 				log.Println("read:", err)
 				return
 			}
-			log.Println(string(message))
-
-			var wsm = new(common.WebSocketMessage)
-			json.Unmarshal(message, wsm)
-
-			switch wsm.MessageType {
-			case common.P_WS_INSTALL_CONTAINER:
-				ws.handleInstallContainerEvent(wsm)
-			default:
-				res, _ := json.Marshal(&common.WebSocketMessage{
-					MessageType: common.P_WS_INSTALL_CONTAINER,
-					Content:     []byte("Unknown message type"),
-				})
-				ws.Send <- res
-			}
+			ws.HandleMsg(message)
 		}
 	}()
 

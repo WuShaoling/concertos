@@ -6,10 +6,10 @@ import (
 	"github.com/emicklei/go-restful-openapi"
 	"github.com/concertos/module/common"
 	"github.com/coreos/etcd/clientv3"
-	"encoding/json"
 	"time"
 	"github.com/shortid"
 	"github.com/concertos/module/entity"
+	"github.com/concertos/player/util"
 )
 
 func (u UserResource) WebService() *restful.WebService {
@@ -45,38 +45,31 @@ func (u UserResource) WebService() *restful.WebService {
 }
 
 func (ur *UserResource) getAllUsers(request *restful.Request, response *restful.Response) {
-	if resp, err := ur.myEtcdClient.Get(common.ETCD_PREFIX_USER_INFO, clientv3.WithPrefix()); nil != err {
-		response.WriteError(http.StatusInternalServerError, err)
-	} else {
-		response.WriteEntity(*ur.myEtcdClient.ConvertToUserInfo(resp))
-	}
+	users := *ur.myEtcdClient.ConvertToUserInfo(
+		ur.myEtcdClient.Get(common.ETCD_PREFIX_USER_INFO, clientv3.WithPrefix()))
+	response.WriteEntity(users)
 }
 
 func (ur *UserResource) getUser(request *restful.Request, response *restful.Response) {
-	if resp, err := ur.myEtcdClient.Get(common.ETCD_PREFIX_USER_INFO+request.PathParameter("userid"), nil); err != nil {
-		response.WriteError(http.StatusInternalServerError, err)
-	} else {
-		response.WriteEntity(*ur.myEtcdClient.ConvertToUserInfo(resp))
-	}
+	key := common.ETCD_PREFIX_USER_INFO + request.PathParameter("userid")
+	user := *ur.myEtcdClient.ConvertToUserInfo(ur.myEtcdClient.Get(key))
+	response.WriteEntity(user)
 }
 
 func (ur *UserResource) createUser(request *restful.Request, response *restful.Response) {
 	// 1. read content
 	var user = new(entity.UserInfo)
-	if err := request.ReadEntity(user); err != nil {
-		response.WriteError(http.StatusInternalServerError, err)
-		return
-	}
+	request.ReadEntity(user)
+
+	// 2. set other info
 	user.Id = shortid.MustGenerate()
 	user.Created = time.Now().Unix()
 
-	// 2. put to etcd
-	res, _ := json.Marshal(user)
-	if _, err := ur.myEtcdClient.Put(common.ETCD_PREFIX_USER_INFO+user.Id, string(res), nil); err != nil {
-		response.WriteErrorString(http.StatusInternalServerError, err.Error())
-	} else {
-		response.WriteHeaderAndEntity(http.StatusOK, nil)
-	}
+	// 3. put to etcd
+	ur.myEtcdClient.Put(common.ETCD_PREFIX_USER_INFO+user.Id, string(util.MyJsonMarshal(user)))
+
+	// 4. return
+	response.WriteHeaderAndEntity(http.StatusOK, nil)
 }
 
 type UserResource struct {

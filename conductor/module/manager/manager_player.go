@@ -2,35 +2,23 @@ package manager
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"github.com/concertos/module/common"
 	"github.com/coreos/etcd/clientv3"
-	"errors"
 	"strings"
+	"github.com/concertos/player/util"
 )
 
-func (pm *PlayerManager) expirePlayer(id string) error {
-	// 1. get player info accounding to alive id
-	strs := strings.Split(id, "/")
-	resp, err := pm.myEctdClient.Get(common.ETCD_PREFIX_PLAYER_INFO + strs[len(strs)-1])
-	if nil != err {
-		return err
-	}
-	players := *pm.myEctdClient.ConvertToPlayerInfo(resp)
-	if len(players) <= 0 {
-		return errors.New("Error : player " + id + " not exist")
-	}
+func (pm *PlayerManager) expirePlayer(id string) {
+	log.Println("expirePlayer " + id)
 
-	// 2. update state
+	strs := strings.Split(id, "/")
+	resp := pm.myEctdClient.Get(common.ETCD_PREFIX_PLAYER_INFO + strs[len(strs)-1])
+	players := *pm.myEctdClient.ConvertToPlayerInfo(resp)
+
 	players[0].State = common.PLAYER_STATE_OFFLINE
-	if player, err := json.Marshal(players[0].State); err != nil {
-		return err
-	} else if _, err := pm.myEctdClient.Put(
-		common.ETCD_PREFIX_PLAYER_INFO+players[0].Id, string(player), nil); nil != err {
-		return err
-	}
-	return nil
+
+	pm.myEctdClient.Put(common.ETCD_PREFIX_PLAYER_INFO+players[0].Id, string(util.MyJsonMarshal(players[0])))
 }
 
 func (pm *PlayerManager) Watch() {
@@ -40,7 +28,7 @@ func (pm *PlayerManager) Watch() {
 			log.Printf("%s %q : %q\n", ev.Type, ev.Kv.Key, ev.Kv.Value)
 			switch  ev.Type.String() {
 			case "DELETE":
-				log.Println(pm.expirePlayer(string(ev.Kv.Key)))
+				pm.expirePlayer(string(ev.Kv.Key))
 			default:
 			}
 		}

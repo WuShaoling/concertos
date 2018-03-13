@@ -6,7 +6,17 @@ import (
 	"fmt"
 	"os/exec"
 	"bytes"
+	"errors"
+	"encoding/json"
 )
+
+func MyJsonMarshal(info interface{}) []byte {
+	res, err := json.Marshal(info)
+	if nil != err {
+		log.Println("MyJsonMarshal: ", err)
+	}
+	return res
+}
 
 func ExecShell(s string) (string, error) {
 	fmt.Println(s)
@@ -14,9 +24,13 @@ func ExecShell(s string) (string, error) {
 
 	var out bytes.Buffer
 	cmd.Stdout = &out
+	cmd.Stderr = &out
 
 	err := cmd.Run()
-	return out.String(), err
+	if nil != err {
+		return "", errors.New(string(out.Bytes()))
+	}
+	return string(out.Bytes()), nil
 }
 
 func GetIps() []string {

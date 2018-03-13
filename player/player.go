@@ -29,8 +29,9 @@ type Player struct {
 func (p *Player) Register() {
 	// send register msg to conductor
 	msg, _ := json.Marshal(&common.WebSocketMessage{
-		MessageType: common.P_WS_INSTALL_CONTAINER,
-		Content:     []byte(p.Info.Id),
+		MessageType: common.P_WS_REGISTER_PLAYER,
+		Content:     p.Info.Id,
+		Receiver:    "",
 	})
 	p.WebSocket.Send <- msg
 

@@ -3,8 +3,8 @@ package executor
 import "sync"
 
 type Executor struct {
-	dockerExecutor *DockerExecutor
-	regExecutor    *RegExecutor
+	DockerExecutor *DockerExecutor
+	RegExecutor    *RegExecutor
 }
 
 var executor *Executor
@@ -13,8 +13,8 @@ var once sync.Once
 func GetExecutor() *Executor {
 	once.Do(func() {
 		executor = &Executor{
-			dockerExecutor: GetDockerExecutor(),
-			regExecutor:    GetRegExecutor(),
+			DockerExecutor: GetDockerExecutor(),
+			RegExecutor:    GetRegExecutor(),
 		}
 	})
 	return executor

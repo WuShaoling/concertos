@@ -5,13 +5,9 @@ import (
 	"encoding/json"
 	"github.com/concertos/player/util"
 	"log"
+	"github.com/concertos/module/entity"
+	"github.com/concertos/player/module/executor"
 )
-
-//type WebSocketMessage struct {
-//	MessageType int
-//	Receiver    string
-//	Content     string
-//}
 
 func (ws *WebSocket) HandleMsg(message []byte) {
 
@@ -30,18 +26,19 @@ func (ws *WebSocket) HandleMsg(message []byte) {
 }
 
 func (ws *WebSocket) startContainer(wsm *common.WebSocketMessage) {
-	// get container-info from etcd
-	etcd := common.GetMyEtcdClient()
-	resp := etcd.Get(common.ETCD_PREFIX_CONTAINER_INFO + wsm.Content)
-	container := *etcd.ConvertToContainerInfo(resp)
+	// Get container
+	container := new(entity.ContainerInfo)
+	json.Unmarshal([]byte(wsm.Content), container)
 
-	// get player id, if player not alive, choose a new player
-	playerid := container[0].PlayerId
-	wsm.Content = string(util.MyJsonMarshal(container))
-	log.Println(playerid)
+	// call executor module
+	resp := executor.GetExecutor().RegExecutor.Start(container)
 
-	//// send start message to player
-	//ws := GetWebSocket()
-	//ws.WriteTo <- []byte(playerid)
-	//ws.WriteTo <- []byte(util.MyJsonMarshal(wsm))
+	log.Println(resp)
+
+	// Response result
+	wsm.Content = resp
+	wsm.Receiver = wsm.Sender
+	wsm.Sender = container.PlayerId
+	wsm.MessageType = common.P_WS_START_CONTAINER_RESULT
+	GetWebSocket().Send <- util.MyJsonMarshal(wsm)
 }

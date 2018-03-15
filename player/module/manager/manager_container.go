@@ -5,27 +5,53 @@ import (
 	"github.com/coreos/etcd/clientv3"
 	"context"
 	"log"
+	"os"
+	"os/signal"
+	"time"
 )
 
-func (cm *ContainerManager) WatchRunningContainer() {
-	rch := cm.myEctdClient.GetClientV3().Watch(context.Background(), common.ETCD_PREFIX_CONTAINER_RUNNING, clientv3.WithPrefix())
-	for wresp := range rch {
-		for _, ev := range wresp.Events {
-			log.Printf("%s %q : %q\n", ev.Type, ev.Kv.Key, ev.Kv.Value)
-			switch  ev.Type.String() {
-			case "DELETE":
-			default:
+func (cm *ContainerManager) KeepContainerAlive() {
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt)
+
+	ticker := time.NewTicker(time.Second * common.CONTAINER_HEART_BEAT)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			for k, v := range cm.Containers {
+				key := common.ETCD_PREFIX_CONTAINER_RUNNING + k
+				resp, err := cm.myEtcdClient.GetClientV3().Grant(context.TODO(), common.CONTAINER_TTL)
+				if err != nil {
+					log.Println(err)
+				} else if _, err = cm.myEtcdClient.GetClientV3().Put(context.TODO(), key, v, clientv3.WithLease(resp.ID)); nil != err {
+					log.Println(err)
+				}
 			}
+		case <-interrupt:
+			log.Println("System interrupt, containers heart beat interrupt, ticker stop")
+			return
 		}
 	}
 }
 
-type ContainerManager struct {
-	myEctdClient *common.MyEtcdClient
+func (cm *ContainerManager) Remove(id string) {
+	delete(cm.Containers, id)
 }
 
-func GetManagerContainer() *ContainerManager {
+func (cm *ContainerManager) Register(id string) {
+	cm.Containers[id] = id
+}
+
+type ContainerManager struct {
+	myEtcdClient *common.MyEtcdClient
+	Containers   map[string](string)
+}
+
+func GetContainerManager() *ContainerManager {
 	return &ContainerManager{
-		myEctdClient: common.GetMyEtcdClient(),
+		myEtcdClient: common.GetMyEtcdClient(),
+		Containers:   make(map[string](string)),
 	}
 }

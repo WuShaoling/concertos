@@ -25,7 +25,7 @@ import (
 //	interrupt := make(chan os.Signal, 1)
 //	signal.Notify(interrupt, os.Interrupt)
 //
-//	ticker := time.NewTicker(time.Second * common.HEART_BEAT)
+//	ticker := time.NewTicker(time.Second * common.PLAYER_HEART_BEAT)
 //	defer ticker.Stop()
 //
 //	for {
@@ -36,7 +36,7 @@ import (
 //
 //			log.Println(key, string(value))
 //
-//			if resp, err := p.myEtcdClient.GetClientV3().Grant(context.TODO(), common.HEART_BEAT); err != nil {
+//			if resp, err := p.myEtcdClient.GetClientV3().Grant(context.TODO(), common.PLAYER_HEART_BEAT); err != nil {
 //				log.Println(err)
 //			} else if _, err = p.myEtcdClient.GetClientV3().Put(context.TODO(), key, string(value), clientv3.WithLease(resp.ID)); nil != err {
 //				log.Println(err)

@@ -11,6 +11,7 @@ const (
 
 type WebSocketMessage struct {
 	MessageType int
+	Sender      string
 	Receiver    string
 	Content     string
 }

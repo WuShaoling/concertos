@@ -10,7 +10,7 @@ import (
 )
 
 func (pm *PlayerManager) expirePlayer(id string) {
-	log.Println("expirePlayer " + id)
+	log.Println("Expire Player " + id)
 
 	strs := strings.Split(id, "/")
 	resp := pm.myEctdClient.Get(common.ETCD_PREFIX_PLAYER_INFO + strs[len(strs)-1])
@@ -25,7 +25,7 @@ func (pm *PlayerManager) Watch() {
 	rch := pm.myEctdClient.GetClientV3().Watch(context.Background(), common.ETCD_PREFIX_PLAYER_ALIVE, clientv3.WithPrefix())
 	for wresp := range rch {
 		for _, ev := range wresp.Events {
-			log.Printf("%s %q : %q\n", ev.Type, ev.Kv.Key, ev.Kv.Value)
+			//log.Printf("%s %q : %q\n", ev.Type, ev.Kv.Key, ev.Kv.Value)
 			switch  ev.Type.String() {
 			case "DELETE":
 				pm.expirePlayer(string(ev.Kv.Key))

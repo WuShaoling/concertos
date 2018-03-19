@@ -19,6 +19,7 @@ const (
 	CONTAINER_STATE_RUNNING         //2
 	CONTAINER_STATE_STOPPED         //3
 	CONATINER_STATE_WAITTING        //4
+	CONATINER_STATE_ERROR           //5
 )
 
 const (
@@ -27,7 +28,7 @@ const (
 )
 
 const ETCD_PREFIX_CONTAINER_RUNNING = "/container/running/"
-const ETCD_PREFIX_CONTAINER_INFO = "/container/new/"
+const ETCD_PREFIX_CONTAINER_INFO = "/container/info/"
 
 const ETCD_PREFIX_PLAYER_ALIVE = "/player/alive/"
 const ETCD_PREFIX_PLAYER_INFO = "/player/info/"

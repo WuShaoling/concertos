@@ -35,7 +35,7 @@ func main() {
 
 		p.Register()
 
-		p.KeepAlive()
+		p.Manager.Start()
 
 	} else {
 		log.Fatal("Error args")

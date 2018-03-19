@@ -50,7 +50,7 @@ func (ws *WebSocket) Start() {
 				return
 			}
 		case <-interrupt:
-			log.Println("System interrupt")
+			log.Println("System interrupt, websocket disconnected")
 			err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			if err != nil {
 				log.Println("write close:", err)

@@ -30,7 +30,7 @@ func (cm *ContainerManager) KeepContainerAlive() {
 				}
 			}
 		case <-interrupt:
-			log.Println("System interrupt, containers heart beat interrupt, ticker stop")
+			log.Println("System interrupt, keep container alive interrupt, ticker stop")
 			return
 		}
 	}

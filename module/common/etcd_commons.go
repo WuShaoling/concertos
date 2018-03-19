@@ -47,7 +47,7 @@ func (e *MyEtcdClient) ConvertToContainerInfo(resp *clientv3.GetResponse) *[]ent
 
 func (e *MyEtcdClient) Put(key, val string, opts ...clientv3.OpOption) (*clientv3.PutResponse) {
 	ctx, cancel := context.WithTimeout(context.Background(), REQUEST_TIMEOUT)
-	resp, err := ectdClientV3.Put(ctx, key, val)
+	resp, err := ectdClientV3.Put(ctx, key, val, opts...)
 	cancel()
 	if nil != err {
 		log.Println("Error Put : ", err)
@@ -104,7 +104,7 @@ func (e *MyEtcdClient) GetClientV3() (*clientv3.Client) {
 		if err != nil {
 			log.Fatal("Error: new common client error:", err)
 		}
-		defer ectdClientV3.Close()
+		//defer ectdClientV3.Close()
 	})
 	return ectdClientV3
 }

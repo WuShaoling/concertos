@@ -21,7 +21,7 @@ func (ws *WebSocket) run() {
 				close(client.send)
 			}
 		case message := <-ws.broadcast:
-			log.Println(message)
+			log.Println("broadcast", message)
 			for client := range ws.Clients {
 				select {
 				case client.send <- message:
@@ -31,8 +31,11 @@ func (ws *WebSocket) run() {
 				}
 			}
 		case clientid := <-ws.WriteTo:
+			log.Println("ws.WriteTo id : ", clientid)
 			message := <-ws.WriteTo
-			for client := range ws.Clients {
+			log.Println("ws.WriteTo message : ", message)
+			for client, _ := range ws.Clients {
+				log.Println("client.Id: ", client.Id)
 				if client.Id == string(clientid) {
 					select {
 					case client.send <- message:
@@ -41,6 +44,7 @@ func (ws *WebSocket) run() {
 						delete(ws.Clients, client)
 					}
 					break
+					log.Println("Find player id")
 				}
 			}
 		}

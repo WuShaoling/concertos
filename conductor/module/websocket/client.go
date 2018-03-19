@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/concertos/module/common"
 )
 
 const (
@@ -31,6 +32,9 @@ var (
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
 }
 
 // Client is a middleman between the websocket connection and the hub.
@@ -45,6 +49,8 @@ type Client struct {
 
 	// Client id
 	Id string
+
+	myEtcdClient *common.MyEtcdClient
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -121,10 +127,11 @@ func (c *Client) writePump() {
 func serveWs(ws *WebSocket, w *http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(*w, r, nil)
 	if err != nil {
-		log.Println(err)
+		log.Println("upgrader.Upgrade", err)
 		return
 	}
-	client := &Client{hub: ws, conn: conn, send: make(chan []byte, 1024)}
+
+	client := &Client{hub: ws, conn: conn, send: make(chan []byte, 1024), myEtcdClient: common.GetMyEtcdClient()}
 	client.hub.register <- client
 
 	go client.writePump()

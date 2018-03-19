@@ -5,84 +5,34 @@ import (
 	"github.com/concertos/player/module/manager"
 	"github.com/concertos/player/module/websocket"
 	"github.com/concertos/module/common"
-	"encoding/json"
-	"os"
-	"os/signal"
-	"time"
-	"github.com/coreos/etcd/clientv3"
 	"log"
-	"github.com/shortid"
-	"github.com/shirou/gopsutil/mem"
 	"github.com/concertos/player/util"
-	"runtime"
-	"context"
-	"github.com/concertos/module/entity"
+	"github.com/concertos/player/module/executor"
 )
 
 type Player struct {
 	myEtcdClient *common.MyEtcdClient
-	Info         *entity.PlayerInfo
 	Manager      *manager.Manager
 	WebSocket    *websocket.WebSocket
+	Executor     *executor.Executor
 }
 
 func (p *Player) Register() {
 	// send register msg to conductor
-	msg, _ := json.Marshal(&common.WebSocketMessage{
+	wsm := common.WebSocketMessage{
 		MessageType: common.P_WS_REGISTER_PLAYER,
-		Content:     p.Info.Id,
+		Content:     "",
 		Receiver:    "",
-	})
-	p.WebSocket.Send <- msg
+		Sender:      p.Manager.PlayerManager.Info.Id,
+	}
+	json := util.MyJsonMarshal(wsm)
+	p.WebSocket.Send <- json
+	log.Println("Send register msg to conductor: ", wsm)
 
 	// write msg to etcd
-	key := common.ETCD_PREFIX_PLAYER_INFO + p.Info.Id
-	value, _ := json.Marshal(p.Info)
-	log.Println(key, string(value))
-	p.myEtcdClient.Put(key, string(value), nil)
-}
-
-func getSysInfo(info *entity.PlayerInfo) *entity.PlayerInfo {
-	info.Id = shortid.MustGenerate()
-	info.State = common.PLAYER_STATE_ONLINE
-
-	memory, _ := mem.VirtualMemory()
-	info.Memory = memory.Total
-
-	hostname, _ := os.Hostname()
-	info.Hostname = hostname
-
-	info.Ips = util.GetIps()
-	info.Cpu = runtime.NumCPU()
-
-	return info
-}
-
-func (p *Player) KeepAlive() {
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt)
-
-	ticker := time.NewTicker(time.Second * common.PLAYER_HEART_BEAT)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			key := common.ETCD_PREFIX_PLAYER_ALIVE + p.Info.Id
-			value, _ := json.Marshal(p.Info.Id)
-
-			log.Println(key, string(value))
-			resp, err := p.myEtcdClient.GetClientV3().Grant(context.TODO(), common.PLAYER_TTL)
-			if err != nil {
-				log.Println(err)
-			} else if _, err = p.myEtcdClient.GetClientV3().Put(context.TODO(), key, string(value), clientv3.WithLease(resp.ID)); nil != err {
-				log.Println(err)
-			}
-		case <-interrupt:
-			log.Println("System interrupt, heart beat interrupt, ticker stop")
-			return
-		}
-	}
+	value := string(util.MyJsonMarshal(p.Manager.PlayerManager.Info))
+	p.myEtcdClient.Put(common.ETCD_PREFIX_PLAYER_INFO+p.Manager.PlayerManager.Info.Id, value)
+	log.Println("Put palyer info to etcd: ", value)
 }
 
 var player *Player
@@ -93,7 +43,7 @@ func GetPlayer() *Player {
 		player = &Player{
 			Manager:      manager.GetManage(),
 			WebSocket:    websocket.GetWebSocket(),
-			Info:         getSysInfo(new(entity.PlayerInfo)),
+			Executor:     executor.GetExecutor(),
 			myEtcdClient: common.GetMyEtcdClient(),
 		}
 	})

@@ -5,8 +5,8 @@ import (
 	"sync"
 )
 
-func (d *Dccp) GetIp() (string, error) {
-	return "192.168.1.1", nil
+func (d *Dccp) GetIp() string {
+	return "192.168.1.1"
 }
 
 var once sync.Once

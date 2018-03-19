@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"errors"
 	"encoding/json"
+	"os"
 )
 
 func MyJsonMarshal(info interface{}) []byte {
@@ -49,4 +50,13 @@ func GetIps() []string {
 		}
 	}
 	return ips
+}
+
+func WriteFile(data, path string) {
+	file, error := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0766);
+	if error != nil {
+		fmt.Println(error);
+	}
+	file.WriteString(data)
+	file.Close();
 }

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"github.com/emicklei/go-restful"
 	"sync"
+	"github.com/concertos/module/common"
 )
 
 func (rest *RestApi) Start() {
@@ -20,8 +21,8 @@ func (rest *RestApi) Start() {
 	sr := StaticResource{}
 	restful.DefaultContainer.Add(sr.WebService())
 
-	log.Printf("Start rest api, listening on localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Printf("rest api server listening on: " + common.RESTAPI_ADDR)
+	log.Fatal(http.ListenAndServe(common.RESTAPI_ADDR, nil))
 }
 
 var restApi *RestApi

@@ -5,6 +5,8 @@ import (
 	"github.com/concertos/conductor"
 	"github.com/concertos/player"
 	"log"
+	"github.com/concertos/module/nfs"
+	"github.com/concertos/module/dns"
 )
 
 func main() {
@@ -14,27 +16,37 @@ func main() {
 
 	if *role == "c" {
 
-		//// mount to nfs server
-		//nfs := nfs.GetNFSApi()
-		//nfs.UMount()
-		//nfs.Mount()
+		log.Println("start cnfs plugin!!")
+		go nfs.GetNFSApi().Start()
+
+		log.Println("start cdns plugin!")
+		go dns.GetDNSApi().Start()
 
 		c := conductor.GetConductor()
 
-		c.Manager.Start()
+		log.Println("start manager module!")
+		go c.Manager.Start()
 
+		log.Println("start websocket module!")
 		go c.WebSocket.Start()
 
+		log.Println("start rest api module!")
 		c.RestApi.Start()
 
 	} else if *role == "p" {
 
+		log.Println("start cnfs plugin!!")
+		go nfs.GetNFSApi().Start()
+
 		p := player.GetPlayer()
 
+		log.Println("start websocket module!")
 		go p.WebSocket.Start()
 
+		log.Println("register to conductor!")
 		p.Register()
 
+		log.Println("start manager module!")
 		p.Manager.Start()
 
 	} else {

@@ -8,27 +8,32 @@ import (
 	"log"
 )
 
+func (nfs *NFSApi) Start() {
+	nfs.UMount()
+	nfs.Mount()
+}
+
 func (nfs *NFSApi) UMount() {
-	if _, err := util.ExecShell("umount " + common.GetNFSServerAddress() + ":" + common.NFS_MOUNT_PATH); nil != err {
+	if _, err := util.ExecShell("umount " + common.NFS_MOUNT_LOCAL_PATH); nil != err {
 		log.Println(err)
 	}
 }
 
 func (nfs *NFSApi) Mount() {
-	if _, err := os.Stat(common.NFS_MOUNT_PATH); nil != err {
+	if _, err := os.Stat(common.NFS_MOUNT_LOCAL_PATH); nil != err {
 		if os.IsNotExist(err) {
-			if err := os.MkdirAll(common.NFS_MOUNT_PATH, 0777); nil != err {
+			if err := os.MkdirAll(common.NFS_MOUNT_LOCAL_PATH, 0777); nil != err {
 				log.Fatal(err)
 			}
 		} else {
 			log.Fatal(err)
 		}
 	}
-	cmd := "sudo mount -t nfs " + common.GetNFSServerAddress() + ":" + common.NFS_MOUNT_PATH + " " + common.NFS_MOUNT_PATH
+	cmd := "sudo mount -t nfs4 " + common.NFS_MOUNT_REMOTE_ADDR + " " + common.NFS_MOUNT_LOCAL_PATH
 	if _, err := util.ExecShell(cmd); nil != err {
 		log.Fatal(err)
 	}
-	log.Println("Mount to nfs server")
+	log.Println("mount to nfs server")
 }
 
 func (nfs *NFSApi) Mkdir(path string) error {

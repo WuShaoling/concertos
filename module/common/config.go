@@ -27,6 +27,11 @@ const (
 	REQUEST_TIMEOUT = 10 * time.Second
 )
 
+const RESTAPI_ADDR = ":8080"
+
+const WS_SERVER_ADDR = "localhost:8081"
+
+// etcd
 const ETCD_PREFIX_CONTAINER_RUNNING = "/container/running/"
 const ETCD_PREFIX_CONTAINER_INFO = "/container/info/"
 
@@ -36,22 +41,15 @@ const ETCD_PREFIX_PLAYER_INFO = "/player/info/"
 const ETCD_PREFIX_USER_ALIVE = "/user/alive/"
 const ETCD_PREFIX_USER_INFO = "/user/info/"
 
-const NFS_MOUNT_PATH = "/nfs/share/"
-
-const RESTAPI_ADDR = ":8080"
-
 func GetEtcdPoints() []string {
 	return []string{"http://127.0.0.1:2379"}
 }
 
-func GetWebSocketPort() string {
-	return "8081"
-}
+// nfs
+const NFS_SERVER_ADDR = "115.159.30.115"
+const NFS_MOUNT_REMOTE_ADDR = "115.159.30.115:/nfs/data/"
+const NFS_MOUNT_LOCAL_PATH = "/exports/"
 
-func GetWebSocketServerAddress() string {
-	return "localhost:8081"
-}
-
-func GetNFSServerAddress() string {
-	return "192.168.1.149"
-}
+// dns
+const DNS_SERVER_ADDR = "localhost:53"
+const DNS_SERVER_API_ADDR = "localhost:8082"

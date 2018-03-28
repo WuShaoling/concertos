@@ -24,23 +24,27 @@ func (ws *WebSocket) HandleMsg(message []byte) {
 	executor := executor.GetExecutor().DockerExecutor
 
 	switch wsm.MessageType {
-	case common.P_WS_INSTALL_CONTAINER:
+	case common.P_WS_CONTAINER_INSTALL:
 		wsm.Content = executor.Install(ws.getContainer([]byte(wsm.Content)))
-		wsm.Receiver = wsm.Sender
-		wsm.Sender = manager.GetManage().PlayerManager.Info.Id
-		wsm.MessageType = common.P_WS_INSTALL_CONTAINER_R
-		ws.Send <- util.MyJsonMarshal(wsm)
+		wsm.MessageType = common.P_WS_CONTAINER_INSTALL_R
 
-	case common.P_WS_START_CONTAINER:
-		executor.Start(ws.getContainer([]byte(wsm.Content)))
+	case common.P_WS_CONTAINER_START:
+		wsm.Content = executor.Start(ws.getContainer([]byte(wsm.Content)))
+		wsm.MessageType = common.P_WS_CONTAINER_START_R
 
-	case common.P_WS_STOP_CONTAINER:
-		executor.Stop(ws.getContainer([]byte(wsm.Content)))
+	case common.P_WS_CONTAINER_STOP:
+		wsm.Content = executor.Stop(ws.getContainer([]byte(wsm.Content)))
+		wsm.MessageType = common.P_WS_CONTAINER_STOP_R
 
-	case common.P_WS_REMOVE_CONTAINER:
-		executor.Remove(ws.getContainer([]byte(wsm.Content)))
+	case common.P_WS_CONTAINER_REMOVE:
+		wsm.Content = executor.Remove(ws.getContainer([]byte(wsm.Content)))
+		wsm.MessageType = common.P_WS_CONTAINER_REMOVE_R
 
 	default:
 		log.Println("Unknown message type")
 	}
+
+	wsm.Receiver = wsm.Sender
+	wsm.Sender = manager.GetManage().PlayerManager.Info.Id
+	ws.Send <- util.MyJsonMarshal(wsm)
 }

@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"github.com/concertos/module/common"
 )
 
 func (ws *WebSocket) run() {
@@ -52,12 +53,12 @@ func (ws *WebSocket) run() {
 }
 
 func (ws *WebSocket) Start() {
-	log.Println("Start websocket server, listen on localhost:8081")
+	log.Println("websocket server listen on: ", common.WS_SERVER_ADDR)
 	go ws.run()
 	http.HandleFunc("/ws", func(writer http.ResponseWriter, request *http.Request) {
 		serveWs(ws, &writer, request)
 	})
-	log.Fatal(http.ListenAndServe(":8081", nil))
+	log.Fatal(http.ListenAndServe(common.WS_SERVER_ADDR, nil))
 }
 
 var webSocket *WebSocket

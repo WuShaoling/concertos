@@ -20,21 +20,21 @@ func (c *Client) HandleMsg(message []byte) {
 		c.Id = string(wsm.Sender)
 		log.Println(c.Id)
 
-	case common.P_WS_INSTALL_CONTAINER:
+	case common.P_WS_CONTAINER_INSTALL:
 		c.installContainer(wsm)
 
-	case common.P_WS_INSTALL_CONTAINER_R:
+	case common.P_WS_CONTAINER_INSTALL_R:
 		ws := GetWebSocket()
 		ws.WriteTo <- []byte(wsm.Receiver)
 		ws.WriteTo <- message
 
-	case common.P_WS_START_CONTAINER:
+	case common.P_WS_CONTAINER_START:
 		c.startContainer(wsm)
 
-	case common.P_WS_STOP_CONTAINER:
+	case common.P_WS_CONTAINER_STOP:
 		c.startContainer(wsm)
 
-	case common.P_WS_REMOVE_CONTAINER:
+	case common.P_WS_CONTAINER_REMOVE:
 		c.startContainer(wsm)
 
 	default:

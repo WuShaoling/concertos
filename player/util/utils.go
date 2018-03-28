@@ -20,7 +20,7 @@ func MyJsonMarshal(info interface{}) []byte {
 }
 
 func ExecShell(s string) (string, error) {
-	fmt.Println(s)
+	//fmt.Println(s)
 	cmd := exec.Command("/bin/bash", "-c", s)
 
 	var out bytes.Buffer

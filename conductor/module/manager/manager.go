@@ -5,7 +5,7 @@ import (
 )
 
 func (m *Manager) Start() {
-	go m.PlayerManager.Watch()
+	m.PlayerManager.Watch()
 }
 
 var manager *Manager

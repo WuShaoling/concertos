@@ -15,7 +15,7 @@ func (ws *WebSocket) Start() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	u := url.URL{Scheme: "ws", Host: common.GetWebSocketServerAddress(), Path: "/ws"}
+	u := url.URL{Scheme: "ws", Host: common.WS_SERVER_ADDR, Path: "/ws"}
 	log.Printf("connecting to %s", u.String())
 
 	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)

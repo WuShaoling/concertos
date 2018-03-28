@@ -9,7 +9,6 @@ import (
 	"github.com/concertos/player/util"
 	"github.com/shortid"
 	"encoding/json"
-	"log"
 )
 
 //type ContainerInfo struct {
@@ -31,20 +30,16 @@ func (c *Client) installContainer(wsm *common.WebSocketMessage) {
 	var container = new(entity.ContainerInfo)
 	json.Unmarshal([]byte(wsm.Content), container)
 
-	log.Println(container)
-
 	container.Id = shortid.MustGenerate()
 	container.Ip = dccp.GetDccp().GetIp()
 	container.State = common.CONTAINER_STATE_STOPPED
 	container.Created = time.Now().Unix()
 	container.PlayerId = scheduler.GetScheduler().RandomAlgorithm.GetPlayerId()
 
-	log.Println("installContainer : ", string(util.MyJsonMarshal(*container)))
-
 	// put to etcd
 	c.myEtcdClient.Put(common.ETCD_PREFIX_CONTAINER_INFO+container.Id, string(util.MyJsonMarshal(*container)))
 
-	// build message and call player to pull image if image not exist
+	// build message and call player to pull image if the image is not exist
 	wsm.Receiver = container.PlayerId
 	wsm.Content = string(util.MyJsonMarshal(container))
 	ws := GetWebSocket()

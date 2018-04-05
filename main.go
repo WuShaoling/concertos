@@ -7,6 +7,7 @@ import (
 	"log"
 	"github.com/concertos/module/nfs"
 	"github.com/concertos/module/dns"
+	"github.com/concertos/network"
 )
 
 func main() {
@@ -49,6 +50,8 @@ func main() {
 		log.Println("start manager module!")
 		p.Manager.Start()
 
+	} else if *role == "t" {
+		network.Start()
 	} else {
 		log.Fatal("Error args")
 	}

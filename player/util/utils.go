@@ -9,6 +9,10 @@ import (
 	"errors"
 	"encoding/json"
 	"os"
+	"io/ioutil"
+	"path/filepath"
+	"bufio"
+	"io"
 )
 
 func MyJsonMarshal(info interface{}) []byte {
@@ -28,10 +32,15 @@ func ExecShell(s string) (string, error) {
 	cmd.Stderr = &out
 
 	err := cmd.Run()
+
+	result := string(out.Bytes())
+
 	if nil != err {
-		return "", errors.New(string(out.Bytes()))
+		log.Println("exec error : ", result)
+		return "", errors.New(result)
 	}
-	return string(out.Bytes()), nil
+	log.Println("exec result: ", result)
+	return result, nil
 }
 
 func GetIps() []string {
@@ -59,4 +68,36 @@ func WriteFile(data, path string) {
 	}
 	file.WriteString(data)
 	file.Close();
+}
+
+func ReadFile(path string) ([]byte, error) {
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Println("read file error: ", err)
+		return nil, err
+	}
+	return b, err
+}
+
+func ReadLines(path string) ([]string, error) {
+	files, _ := filepath.Glob(path)
+	var lines []string
+	for _, file := range files {
+		f, err := os.OpenFile(file, os.O_RDONLY, 0666)
+		if err != nil {
+			log.Println("read file line error : ", err)
+			f.Close()
+			return nil, err
+		}
+		rd := bufio.NewReader(f)
+		for {
+			line, err := rd.ReadString('\n')
+			if err != nil || io.EOF == err {
+				break
+			}
+			lines = append(lines, line)
+		}
+	}
+
+	return lines, nil
 }

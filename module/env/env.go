@@ -13,7 +13,7 @@ var ENV_ADDR_NFS_SERVER string
 var ENV_ADDR_ETCD_SERVER string
 var once sync.Once
 
-const ENV_PATH = "/home/wsl/go/src/github.com/concertos/.config/env.config"
+const ENV_PATH = "./.config/env.config"
 
 func GetEnv() {
 

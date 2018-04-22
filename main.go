@@ -6,8 +6,8 @@ import (
 	"github.com/concertos/module/env"
 	"github.com/concertos/conductor"
 	"github.com/concertos/player"
-	"github.com/concertos/module/dns"
-	"fmt"
+	"github.com/concertos/module/nfs"
+	"github.com/concertos/module/docker"
 )
 
 func main() {
@@ -19,43 +19,41 @@ func main() {
 	var role = flag.String("r", "", "conductor | player | test")
 	flag.Parse()
 
-	if *role == "c" || *role == "p" {
+	if *role == "c" {
 
-		//// 修改 docker 参数并重启 docker
-		//docker.Config()
+		c := conductor.GetConductor()
 
-		////挂载nfs
-		//log.Println("start nfsd plugin!!")
-		//nfs.GetNFSApi().Start()
+		log.Println("start websocket module!")
+		go c.WebSocket.Start()
 
-		if *role == "c" {
+		log.Println("start rest api module!")
+		c.RestApi.Start()
 
-			c := conductor.GetConductor()
+	} else if *role == "p" {
 
-			log.Println("start websocket module!")
-			go c.WebSocket.Start()
+		// 修改 docker 参数并重启 docker
+		docker.Config()
 
-			log.Println("start rest api module!")
-			c.RestApi.Start()
+		//挂载nfs
+		log.Println("start nfsd plugin!!")
+		nfs.GetNFSApi().Start()
 
-		} else if *role == "p" {
-			p := player.GetPlayer()
+		p := player.GetPlayer()
 
-			log.Println("start websocket module!")
-			go p.WebSocket.Start()
+		log.Println("start websocket module!")
+		go p.WebSocket.Start()
 
-			log.Println("register to conductor!")
-			p.Register()
+		log.Println("register to conductor!")
+		p.Register()
 
-			log.Println("start manager module!")
-			p.Manager.Start()
+		log.Println("start manager module!")
+		p.Manager.Start()
 
-		}
 	}
-
-	if *role == "t" {
-		fmt.Println(dns.GetDNSApi().GetAll())
-	} else {
-		log.Fatal("Error args")
-	}
+	//
+	//if *role == "t" {
+	//	fmt.Println(dns.GetDNSApi().GetAll())
+	//} else {
+	//	log.Fatal("Error args")
+	//}
 }

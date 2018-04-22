@@ -54,7 +54,7 @@ func (pm *PlayerResource) getIndexPageData(request *restful.Request, response *r
 	result["total_cpu"] = strconv.Itoa(total_cpu)
 	result["total_memory"] = strconv.FormatUint(total_mem, 10)
 	result["total_player"] = strconv.Itoa(len(players))
-	result["total_container"] = strconv.Itoa(len(players))
+	result["total_container"] = strconv.Itoa(len(containers))
 	result["used_cpu"] = strconv.Itoa(used_cpu)
 	result["used_memory"] = strconv.FormatUint(used_mem, 10)
 

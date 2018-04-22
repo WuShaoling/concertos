@@ -22,14 +22,16 @@ func (cr *ContainerResource) WebService() *restful.WebService {
 	ws.Route(ws.GET("/").To(cr.getAll))
 
 	ws.Route(ws.PUT("/install").To(cr.installContainer))
-
 	ws.Route(ws.GET("/start/{container-name}").To(cr.startContainer))
-
 	ws.Route(ws.GET("/stop/{container-name}").To(cr.stopContainer))
-
 	ws.Route(ws.GET("/remove/{container-name}").To(cr.removeContainer))
+	ws.Route(ws.GET("/cloudware/{cloudware-name}").To(cr.getCloudware))
 
 	return ws
+}
+
+func (cr *ContainerResource) getCloudware(req *restful.Request, response *restful.Response) {
+	response.WriteEntity("")
 }
 
 func (cr *ContainerResource) getAll(req *restful.Request, response *restful.Response) {

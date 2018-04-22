@@ -13,6 +13,7 @@ import (
 	"github.com/concertos/module/nfs"
 	"github.com/concertos/module/util"
 	"github.com/concertos/player/module/manager"
+	"github.com/concertos/module/dns"
 )
 
 func (de *DockerExecutor) Start(con *entity.ContainerInfo) (string) {
@@ -37,7 +38,6 @@ func (de *DockerExecutor) Start(con *entity.ContainerInfo) (string) {
 			}
 		}
 	}
-	log.Println(1)
 
 	// 检查是否有镜像
 	if err := de.PullImage(con.BaseImage); nil != err {
@@ -47,8 +47,6 @@ func (de *DockerExecutor) Start(con *entity.ContainerInfo) (string) {
 	if err := nfs.GetNFSApi().CreateContainerRootPath(con.Name); err != nil {
 		return err.Error()
 	}
-
-	log.Println(2)
 
 	log.Println(common.NFS_MOUNT_LOCAL_PATH + con.Name + ":" + common.NFS_MOUNT_CONTAINER_PATH)
 
@@ -83,7 +81,11 @@ func (de *DockerExecutor) Start(con *entity.ContainerInfo) (string) {
 	con.Ip = inspect.NetworkSettings.IPAddress
 	de.myEtcdClient.Put(common.ETCD_PREFIX_CONTAINER_INFO+con.Name, string(util.MyJsonMarshal(*con)))
 
+	// register to manage module
 	manager.GetManage().ContainerManager.Register(con.Name)
+
+	// update dns module
+	dns.GetDNSApi().Add(con.Name, con.Ip)
 
 	log.Println("start container " + con.Name + " ok")
 

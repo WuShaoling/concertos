@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>ConcertOS</title>
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../vendor/metisMenu/metisMenu.min.css" rel="stylesheet">
+    <link href="../vendor/datatables-plugins/dataTables.bootstrap.css" rel="stylesheet">
+    <link href="../vendor/datatables-responsive/dataTables.responsive.css" rel="stylesheet">
+    <link href="../dist/css/sb-admin-2.css" rel="stylesheet">
+    <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+</head>
+
+<body>
+<div id="wrapper">
+    <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="index.html">ConcertOS</a>
+        </div>
+        <ul class="nav navbar-top-links navbar-right">
+            <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                    <i class="fa fa-user fa-fw"></i> <i class="fa fa-caret-down"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-user">
+                    <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                    </li>
+                    <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
+                    </li>
+                    <li class="divider"></li>
+                    <li><a href="login.html"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+        <div class="navbar-default sidebar" role="navigation">
+            <div class="sidebar-nav navbar-collapse">
+                <ul class="nav" id="side-menu">
+                    <li>
+                        <a href="index.html"><i class="fa fa-dashboard fa-fw"></i>Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="players.html"><i class="fa fa-table fa-fw"></i>Players</a>
+                    </li>
+                    <li>
+                        <a href="containers.html"><i class="fa fa-table fa-fw"></i>Containers</a>
+                    </li>
+                    <li>
+                        <a href="forms.html"><i class="fa fa-edit fa-fw"></i>New Container</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div id="page-wrapper">
+        <div class="row">
+            <div class="col-lg-12">
+                <br>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        Players
+                    </div>
+                    <div class="panel-body">
+                        <table width="100%" class="table table-striped table-bordered table-hover"
+                               id="dataTables-Players">
+                            <thead>
+                            <tr>
+                                <th class="text-center">Id</th>
+                                <th class="text-center">Hostname</th>
+                                <th class="text-center">IPs</th>
+                                <th class="text-center">CPU</th>
+                                <th class="text-center">Mem</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">Operations</th>
+                            </tr>
+                            </thead>
+                            <tbody id="dataTables-Players-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="every_player">
+        </div>
+    </div>
+</div>
+
+<script src="../vendor/jquery/jquery.min.js"></script>
+<script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+<script src="../vendor/metisMenu/metisMenu.min.js"></script>
+<script src="../vendor/datatables/js/jquery.dataTables.min.js"></script>
+<script src="../vendor/datatables-plugins/dataTables.bootstrap.min.js"></script>
+<script src="../vendor/datatables-responsive/dataTables.responsive.js"></script>
+<script src="../dist/js/sb-admin-2.js"></script>
+<script>
+
+    $(document).ready(function () {
+        $('#dataTables-Players').DataTable({
+            responsive: true
+        });
+        $.ajax({
+            "url": "/players/",
+            "method": "GET"
+        }).done(function (response) {
+            var innerHtml = "";
+            for (var i = 0; i < response.length; i++) {
+                var mem = response[i].Memory / 1024 / 1000;
+                mem = mem.toFixed(0);
+                var state = "Online";
+                if (response[i].Status == 0) {
+                    state = "Offline";
+                }
+                innerHtml += '<tr class="odd gradeX">' +
+                        '<td class="text-center">' + response[i].Id + '</td>' +
+                        '<td class="text-center">' + response[i].Hostname + '</td>' +
+                        '<td class="text-center">' + response[i].Ips[0] + '</td>' +
+                        '<td class="text-center">' + response[i].Cpu + '</td>' +
+                        '<td class="text-center">' + mem + '</td>' +
+                        '<td class="text-center">' + state + '</td>' +
+                        '<td class="text-center">' +
+                        '<a class="fa fa-play"></a>' +
+                        '&nbsp;&nbsp;&nbsp;&nbsp;' +
+                        '<a class="fa fa-stop"></a>' +
+                        '&nbsp;&nbsp;&nbsp;&nbsp;' +
+                        '<a class="fa fa-remove"></a>' +
+                        '</td>' +
+                        '</tr>';
+            }
+            document.getElementById('dataTables-Players-body').innerHTML = innerHtml
+        });
+
+        $.ajax({
+            "url": "/players/getall",
+            "method": "GET"
+        }).done(function (response) {
+            var innerHtml = "";
+            for (var key in response) {
+                if (i % 3 == 0) {
+                    innerHtml += '<div class="row">';
+                }
+                innerHtml += '<div class="col-lg-4">' +
+                        '<div class="panel panel-default">' +
+                        '<div class="panel-heading">' + key + '</div>' +
+                        '<div class="panel-body">' +
+                        '<div class="table-responsive">' +
+                        '<table class="table">' +
+                        '<thead>' +
+                        '<tr>' +
+                        '<th>Name</th>' +
+                        '<th>State</th>' +
+                        '<th>Tag</th>' +
+                        '</tr>' +
+                        '</thead>' +
+                        '<tbody>';
+                var cons = response[key];
+                for (var i = 0; i < cons.length; i++) {
+                    var clazz = 'success';
+                    var state = 'Online';
+                    if (cons[i].State == '0') {
+                        state = 'Offline';
+                        clazz = 'danger';
+                    }
+                    innerHtml += '<tr class="' + clazz + '">' +
+                            '<td>' + cons[i].Name + '</td>' +
+                            '<td>' + state + '</td>' +
+                            '<td>' + cons[i].Describe + '</td>' +
+                            '</tr>'
+                }
+                innerHtml += '</tbody>' +
+                        ' </table>' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>' +
+                        ' </div>';
+                if (i % 3 == 0) {
+                    innerHtml += '</div>';
+                }
+            }
+            document.getElementById('every_player').innerHTML = innerHtml;
+        });
+    });
+
+</script>
+
+</body>
+
+</html>

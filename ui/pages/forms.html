@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>ConcertOS</title>
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../vendor/metisMenu/metisMenu.min.css" rel="stylesheet">
+    <link href="../dist/css/sb-admin-2.css" rel="stylesheet">
+    <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+</head>
+
+<body>
+<div id="wrapper">
+    <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="index.html">ConcertOS</a>
+        </div>
+        <ul class="nav navbar-top-links navbar-right">
+            <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                    <i class="fa fa-user fa-fw"></i> <i class="fa fa-caret-down"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-user">
+                    <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                    </li>
+                    <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
+                    </li>
+                    <li class="divider"></li>
+                    <li><a href="login.html"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+        <div class="navbar-default sidebar" role="navigation">
+            <div class="sidebar-nav navbar-collapse">
+                <ul class="nav" id="side-menu">
+                    <li>
+                        <a href="index.html"><i class="fa fa-dashboard fa-fw"></i>Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="players.html"><i class="fa fa-table fa-fw"></i>Players</a>
+                    </li>
+                    <li>
+                        <a href="containers.html"><i class="fa fa-table fa-fw"></i>Containers</a>
+                    </li>
+                    <li>
+                        <a href="forms.html"><i class="fa fa-edit fa-fw"></i>New Container</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div id="page-wrapper">
+        <div class="row">
+            <div class="col-lg-12">
+                <br>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        Create new container
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="form-group">
+                                    <label>Contaienr Name</label>
+                                    <input class="form-control" placeholder="nginx-v1" id="input-name">
+                                </div>
+                                <div class="form-group">
+                                    <label>Image</label>
+                                    <input class="form-control" placeholder="Image:tag" id="input-image">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <fieldset>
+                                    <div class="form-group">
+                                        <label>CPUs</label>
+                                        <input class="form-control" placeholder="1" id="input-cpus">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Memory</label>
+                                        <input class="form-control" placeholder="1024" id="input-memory">
+                                    </div>
+                                </fieldset>
+                            </div>
+                            <div class="col-lg-12">
+                                <div class="form-group">
+                                    <label>Tag</label>
+                                    <input class="form-control" placeholder="nginx" id="input-description">
+                                </div>
+                                <center>
+                                    <input class="form-control-static" id="output_error">
+                                    <button type="button" class="btn btn-default" onclick="NewContainer()">Submit
+                                    </button>&nbsp;&nbsp;&nbsp;
+                                    <button type="reset" class="btn btn-default">Reset</button>
+                                </center>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../vendor/jquery/jquery.min.js"></script>
+<script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+<script src="../vendor/metisMenu/metisMenu.min.js"></script>
+<script src="../dist/js/sb-admin-2.js"></script>
+<script>
+    function NewContainer() {
+        var output = document.getElementById("output_error");
+
+        var name = document.getElementById("input-name").value;
+        if (name.length == 0) {
+            output.value = "name is empty";
+            return;
+        }
+        var tag = document.getElementById("input-description").value;
+        if (tag.length == 0) {
+            output.value = "tag is empty";
+            return;
+        }
+        var image = document.getElementById("input-image").value;
+        if (image.length == 0) {
+            output.value = "image is empty";
+            return;
+        }
+        var memory = document.getElementById("input-memory").value;
+        if (memory.length == 0) {
+            output.value = "memory is empty";
+            return;
+        }
+        var cpus = document.getElementById("input-cpus").value;
+        if (cpus.length == 0) {
+            output.value = "cpu is empty";
+            return;
+        }
+
+        $.ajax({
+            "url": "/containers/install/",
+            "method": "PUT",
+            "headers": {
+                "content-type": "application/json"
+            },
+            "processData": false,
+            "data": "{\"Name\":\"" + name + "\",\"User\":\"6\",\"Describe\":\"" +
+            tag + "\",\"BaseImage\":\"" + image + "\",\"Command\":\"NULL\",\"CPU\": " +
+            cpus + ",\"Memory\": " + memory + "}"
+        }).done(function (response) {
+            alert(response);
+        });
+    }
+</script>
+</body>
+</html>

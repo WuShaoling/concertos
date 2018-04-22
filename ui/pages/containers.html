@@ -1,0 +1,191 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>ConcertOS</title>
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../vendor/metisMenu/metisMenu.min.css" rel="stylesheet">
+    <link href="../vendor/datatables-plugins/dataTables.bootstrap.css" rel="stylesheet">
+    <link href="../vendor/datatables-responsive/dataTables.responsive.css" rel="stylesheet">
+    <link href="../dist/css/sb-admin-2.css" rel="stylesheet">
+    <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+</head>
+
+<body>
+<div id="wrapper">
+    <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="index.html">ConcertOS</a>
+        </div>
+        <ul class="nav navbar-top-links navbar-right">
+            <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                    <i class="fa fa-user fa-fw"></i> <i class="fa fa-caret-down"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-user">
+                    <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                    </li>
+                    <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
+                    </li>
+                    <li class="divider"></li>
+                    <li><a href="login.html"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+        <div class="navbar-default sidebar" role="navigation">
+            <div class="sidebar-nav navbar-collapse">
+                <ul class="nav" id="side-menu">
+                    <li>
+                        <a href="index.html"><i class="fa fa-dashboard fa-fw"></i>Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="players.html"><i class="fa fa-table fa-fw"></i>Players</a>
+                    </li>
+                    <li>
+                        <a href="containers.html"><i class="fa fa-table fa-fw"></i>Containers</a>
+                    </li>
+                    <li>
+                        <a href="forms.html"><i class="fa fa-edit fa-fw"></i>New Container</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div id="page-wrapper">
+        <div class="row">
+            <div class="col-lg-12">
+                <br>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        Containers
+                    </div>
+                    <div class="panel-body">
+                        <table width="100%" class="table table-striped table-bordered table-hover"
+                               id="dataTables-Containers">
+                            <thead>
+                            <tr>
+                                <th class="text-center">ID</th>
+                                <th class="text-center">Name</th>
+                                <th class="text-center">IP</th>
+                                <th class="text-center">Image</th>
+                                <th class="text-center">PlayerID</th>
+                                <th class="text-center">CPU</th>
+                                <th class="text-center">Mem</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">Tag</th>
+                                <th class="text-center">Operations</th>
+                            </tr>
+                            </thead>
+                            <tbody id="dataTables-Containers-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../vendor/jquery/jquery.min.js"></script>
+<script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+<script src="../vendor/metisMenu/metisMenu.min.js"></script>
+<script src="../vendor/datatables/js/jquery.dataTables.min.js"></script>
+<script src="../vendor/datatables-plugins/dataTables.bootstrap.min.js"></script>
+<script src="../vendor/datatables-responsive/dataTables.responsive.js"></script>
+<script src="../dist/js/sb-admin-2.js"></script>
+<script src="../json/json2.js"></script>
+<script>
+    function start(name) {
+        $.ajax({
+            "url": "/containers/start/" + name,
+            "method": "GET",
+            success: function (response) {
+                alert(response);
+            }
+        });
+    }
+
+    function stop(name) {
+        var settings = {
+            "url": "/containers/stop/" + name,
+            "method": "GET"
+        };
+        $.ajax(settings).done(function (response) {
+            alert(response);
+        });
+    }
+
+    function remove(name) {
+        var settings = {
+            "url": "/containers/remove/" + name,
+            "method": "GET"
+        };
+        $.ajax(settings).done(function (response) {
+            alert(response);
+        });
+    }
+
+    $(document).ready(function () {
+        $('#dataTables-Containers').DataTable({
+            responsive: true
+        });
+        var settings = {
+            "url": "/containers/",
+            "method": "GET",
+            "headers": {}
+        };
+        $.ajax(settings).done(function (response) {
+            var innerHtml = "";
+            for (var i = 0; i < response.length; i++) {
+                var type = "gradeU";
+                if (i % 2 == 0) {
+                    type = "odd gradeX";
+                }
+                var mem = response[i].Memory / 1024;
+                var state = "Online";
+                if (response[i].State == 0) {
+                    state = "Offline";
+                }
+                var line = '<tr class="' + type + '">' +
+                        '<td class="text-center">' + response[i].Id.substring(0, 10) + '</td>' +
+                        '<td class="text-center">' + response[i].Name + '</td>' +
+                        '<td class="text-center">' + response[i].Ip + '</td>' +
+                        '<td class="text-center">' + response[i].BaseImage + '</td>' +
+                        '<td class="text-center">' + response[i].PlayerId + '</td>' +
+                        '<td class="text-center">' + response[i].CPU + '</td>' +
+                        '<td class="text-center">' + response[i].Memory + '</td>' +
+                        '<td class="text-center">' + state + '</td>' +
+                        '<td class="text-center">' + response[i].Describe + '</td>' +
+                        '<td class="text-center">' +
+                        '<a onclick=start("' + response[i].Name + '") class="fa fa-play"></a>' +
+                        '&nbsp;&nbsp;' +
+                        '<a onclick=stop("' + response[i].Name + '") class="fa fa-stop"></a>' +
+                        '&nbsp;&nbsp;' +
+                        '<a onclick=remove("' + response[i].Name + '") class="fa fa-remove"></a>' +
+                        '</td>' +
+                        '</tr>';
+                innerHtml += line;
+            }
+            document.getElementById('dataTables-Containers-body').innerHTML = innerHtml
+        });
+    });
+</script>
+
+</body>
+
+</html>
+

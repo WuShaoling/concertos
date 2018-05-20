@@ -96,13 +96,20 @@
                                     </div>
                                 </fieldset>
                             </div>
-                            <div class="col-lg-12">
+                            <div class="col-lg-6">
                                 <div class="form-group">
                                     <label>Tag</label>
                                     <input class="form-control" placeholder="nginx" id="input-description">
                                 </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-group">
+                                    <label>View Port</label>
+                                    <input class="form-control" placeholder="5678" id="input-port">
+                                </div>
+                            </div>
+                            <div class="col-lg-12">
                                 <center>
-                                    <input class="form-control-static" id="output_error">
                                     <button type="button" class="btn btn-default" onclick="NewContainer()">Submit
                                     </button>&nbsp;&nbsp;&nbsp;
                                     <button type="reset" class="btn btn-default">Reset</button>
@@ -122,31 +129,34 @@
 <script src="../dist/js/sb-admin-2.js"></script>
 <script>
     function NewContainer() {
-        var output = document.getElementById("output_error");
-
         var name = document.getElementById("input-name").value;
         if (name.length == 0) {
-            output.value = "name is empty";
+            alert("name is empty");
             return;
         }
         var tag = document.getElementById("input-description").value;
         if (tag.length == 0) {
-            output.value = "tag is empty";
+            alert("tag is empty");
             return;
         }
         var image = document.getElementById("input-image").value;
         if (image.length == 0) {
-            output.value = "image is empty";
+            alert("image is empty");
             return;
         }
         var memory = document.getElementById("input-memory").value;
         if (memory.length == 0) {
-            output.value = "memory is empty";
+            alert("memory is empty");
             return;
         }
         var cpus = document.getElementById("input-cpus").value;
         if (cpus.length == 0) {
-            output.value = "cpu is empty";
+            alert("cpu is empty");
+            return;
+        }
+        var port = document.getElementById("input-port").value;
+        if (port.length == 0) {
+            alert("port is empty");
             return;
         }
 
@@ -159,9 +169,13 @@
             "processData": false,
             "data": "{\"Name\":\"" + name + "\",\"User\":\"6\",\"Describe\":\"" +
             tag + "\",\"BaseImage\":\"" + image + "\",\"Command\":\"NULL\",\"CPU\": " +
-            cpus + ",\"Memory\": " + memory + "}"
+            cpus + ",\"Memory\": " + memory + ", \"Port\":" + port+"}"
         }).done(function (response) {
-            alert(response);
+            if (response == 200) {
+                window.location.href = "/static/pages/containers.html";
+            } else {
+                alert(response);
+            }
         });
     }
 </script>

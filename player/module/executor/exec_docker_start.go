@@ -34,6 +34,11 @@ func (de *DockerExecutor) Start(con *entity.ContainerInfo) (string) {
 					return err.Error()
 				}
 				manager.GetManage().ContainerManager.Register(con.Name)
+
+				if con.Port == 5678{
+					util.ExecShell("docker restart "+con.Name+"-pulsar")
+				}
+
 				return "start success"
 			}
 		}
@@ -89,5 +94,8 @@ func (de *DockerExecutor) Start(con *entity.ContainerInfo) (string) {
 
 	log.Println("start container " + con.Name + " ok")
 
+	if con.Port == 5678 {
+		util.ExecShell("docker run --name=" + con.Name + "-pulsar -d --net=container:" + con.Name + " daocloud.io/shaoling/concertos-pulsar:master")
+	}
 	return resp.ID
 }

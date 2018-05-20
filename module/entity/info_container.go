@@ -11,4 +11,5 @@ type ContainerInfo struct {
 	State     int
 	CPU       int
 	Memory    uint64
+	Port      uint32
 }

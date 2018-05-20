@@ -37,7 +37,7 @@ func setSysInfo() *entity.PlayerInfo {
 	info.Hostname = hostname
 
 	info.Ips = util.GetIps()
-	info.Cpu = runtime.NumCPU()
+	info.Cpu = runtime.NumCPU()*10
 
 	return info
 }

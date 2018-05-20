@@ -109,6 +109,16 @@
 <script src="../dist/js/sb-admin-2.js"></script>
 <script src="../json/json2.js"></script>
 <script>
+    function view(addr) {
+        var strs = addr.split(":");
+        if(strs[1] == "3000"){
+            alert(addr);
+            window.location.href = "http://"+addr
+        }else {
+            window.location.href = "/static/reaas/index.html?addr=" + addr;
+        }
+    }
+
     function start(name) {
         $.ajax({
             "url": "/containers/start/" + name,
@@ -176,6 +186,8 @@
                         '<a onclick=stop("' + response[i].Name + '") class="fa fa-stop"></a>' +
                         '&nbsp;&nbsp;' +
                         '<a onclick=remove("' + response[i].Name + '") class="fa fa-remove"></a>' +
+                        '&nbsp;&nbsp;' +
+                        '<a onclick=view("' + response[i].Ip+':'+response[i].Port + '") class="glyphicon glyphicon-home"></a>' +
                         '</td>' +
                         '</tr>';
                 innerHtml += line;
